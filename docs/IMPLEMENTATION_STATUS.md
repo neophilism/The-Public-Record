@@ -9,14 +9,14 @@ To mark TPR-XX complete, document its actual PR/commit, acceptance criteria, tes
 
 | Work IDs | Workstream | Planned | Verified completed |
 |---|---|---:|---:|
-| TPR-01–TPR-10 | Foundation, security, data | 10 | 0 |
+| TPR-01–TPR-10 | Foundation, security, data | 10 | 3 |
 | TPR-11–TPR-18 | Research and templates | 8 | 0 |
 | TPR-19–TPR-27 | Citizen filing | 9 | 0 |
 | TPR-28–TPR-32 | Document publication | 5 | 0 |
 | TPR-33–TPR-40 | Public actions | 8 | 0 |
 | TPR-41–TPR-46 | Integration | 6 | 0 |
 | TPR-47–TPR-52 | Production | 6 | 0 |
-| **Total** | | **52** | **0** |
+| **Total** | | **52** | **3** |
 
 ## Early implementation commits
 
@@ -32,3 +32,11 @@ FOIA Aggregator: public metadata/search with a versioned adapter.
 Justice For All: navigation/SSO only after an authenticated and authorized contract.
 Engine Room: approved roadmap manifest and explicit PR mappings.
 Liberty Nodes: reviewed public documents only, never private files.
+
+## Verified roadmap links
+
+- TPR-01: [PR #1](https://github.com/neophilism/The-Public-Record/pull/1) — merged, CI green; plan, decisions, contribution and acceptance register.
+- TPR-02: [PR #2](https://github.com/neophilism/The-Public-Record/pull/2) — merged, CI green; service contract, typed parsing and adapter tests.
+- TPR-03: [PR #3](https://github.com/neophilism/The-Public-Record/pull/3) — merged, CI green; documented security inventory, threat register and publication policy tests. **No production crypto or storage assurance is claimed.**
+
+Remaining TPR-04–52 have no accepted mapping. The evidence listed is repository-scoped only; deployed infrastructure and independent security review remain unverified.
