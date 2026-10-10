@@ -7,7 +7,7 @@ This is a preview scaffold, not a live record-filing or confidential upload serv
 Use Node.js 22+, npm, and Git.
 
 ```sh
-npm install --no-audit --no-fund
+npm ci --no-audit --no-fund
 npm run verify:baseline
 npm run typecheck
 npm test
@@ -26,4 +26,4 @@ docker build -t public-record-preview .
 docker run --rm -p 3000:3000 public-record-preview
 ```
 
-A production-reviewed package lockfile and `npm ci` are still required for deterministic deployments. Authentication, private storage, database migration, publication approval, and FOIA submission features remain unimplemented. Never provision services or enable spending without explicit authorization. See the full development plan and P0 acceptance gates.
+The lockfile is committed and npm ci is enforced in CI and the preview image. Production readiness still depends on other security/operational acceptance gates. Authentication, private storage, database migration, publication approval, and FOIA submission features remain unimplemented. Never provision services or enable spending without explicit authorization. See the full development plan and P0 acceptance gates.

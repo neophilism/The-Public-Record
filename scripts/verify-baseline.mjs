@@ -1,7 +1,7 @@
 import {readFileSync,existsSync} from "node:fs";
 import {resolve} from "node:path";
 const root=process.cwd();
-const required=["README.md","CONTRIBUTING.md","SECURITY.md","docs/DEVELOPMENT_PLAN.md",
+const required=["package-lock.json","README.md","CONTRIBUTING.md","SECURITY.md","docs/DEVELOPMENT_PLAN.md",
   "docs/DECISIONS.md","docs/IMPLEMENTATION_STATUS.md","docs/P0_ACCEPTANCE.md",
   ".exechub/project.yml",".exechub/approved-pr-mapping.json","openapi/public-record-v1.json",
   "fixtures/investigations.synthetic.json","app/page.tsx"];
