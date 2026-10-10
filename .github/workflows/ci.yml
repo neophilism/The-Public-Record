@@ -1,5 +1,7 @@
 name: CI
 on: [push, pull_request]
+permissions:
+  contents: read
 jobs:
   quality:
     runs-on: ubuntu-latest
@@ -9,6 +11,7 @@ jobs:
         with:
           node-version: "22"
       - run: npm install --no-audit --no-fund
+      - run: npm run verify:baseline
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
