@@ -5,6 +5,22 @@ permissions:
 jobs:
   quality:
     runs-on: ubuntu-latest
+    env:
+      TEST_DATABASE_URL: postgresql://tpr_ci:fixture_only@127.0.0.1:5432/tpr_ci
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: tpr_ci
+          POSTGRES_PASSWORD: fixture_only
+          POSTGRES_DB: tpr_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U tpr_ci -d tpr_ci"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 12
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
