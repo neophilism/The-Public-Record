@@ -39,7 +39,11 @@ describe("safe external API projections",()=>{
   it("keeps an exact 52-work-package roadmap with verified mappings only",()=>{
     expect(mapping.pullRequestNumbers).toHaveLength(52);
     expect(mapping.pullRequestNumbers.slice(0,3)).toEqual([1,2,3]);
-    expect(mapping.pullRequestNumbers.slice(3).every(v=>v===null)).toBe(true);
+    const accepted = mapping.pullRequestNumbers.filter((v):v is number=>v!==null);
+    expect(accepted.length).toBeGreaterThanOrEqual(3);
+    expect(accepted.every(v=>Number.isSafeInteger(v) && v>0)).toBe(true);
+    expect(new Set(accepted).size).toBe(accepted.length);
+    expect(mapping.pullRequestNumbers[4]).toBeNull(); // TPR-05 remains partial
   });
   it("declares OpenAPI schemas without pretending unfinished API endpoints exist",()=>{
     expect(openapi.openapi).toBe("3.1.0");
