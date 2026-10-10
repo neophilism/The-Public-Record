@@ -76,7 +76,7 @@ export async function verifyOidcIdToken(
     if(jwk.kty!=="RSA" || jwk.kid!==h.kid ||
        (jwk.use!==undefined && jwk.use!=="sig") ||
        (jwk.alg!==undefined && jwk.alg!=="RS256") ||
-       (jwk.key_ops!==undefined && !jwk.key_ops.includes("verify")) ||
+       (jwk.key_ops!==undefined && (!Array.isArray(jwk.key_ops) || !jwk.key_ops.includes("verify"))) ||
        jwk.d!==undefined || jwk.p!==undefined || jwk.q!==undefined)
       throw new IdentityError();
     const key=createPublicKey({key:jwk,format:"jwk"});
