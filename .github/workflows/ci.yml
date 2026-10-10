@@ -32,3 +32,31 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
+  container-smoke:
+    needs: quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build non-root production preview image
+        run: docker build --progress=plain -t public-record:ci .
+      - name: Start preview without production credentials
+        run: docker run -d --name public-record-preview -p 127.0.0.1:3000:3000 public-record:ci
+      - name: Confirm the preview remains explicitly not production-ready
+        run: |
+          success=0
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent --show-error --connect-timeout 3 http://127.0.0.1:3000/api/health > /tmp/tpr-health.json; then
+              success=1
+              break
+            fi
+            sleep 2
+          done
+          if [ "$success" -ne 1 ]; then
+            docker ps -a
+            docker logs public-record-preview || true
+            exit 1
+          fi
+          node -e "const fs=require('node:fs'); const v=JSON.parse(fs.readFileSync('/tmp/tpr-health.json','utf8')); if(v.status!=='scaffold'||v.production_ready!==false) process.exit(1)"
+      - name: Stop disposable preview
+        if: always()
+        run: docker rm -f public-record-preview || true
