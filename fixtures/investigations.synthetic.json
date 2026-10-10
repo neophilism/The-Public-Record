@@ -1,0 +1,29 @@
+{
+  "synthetic": true,
+  "source": "synthetic-fixture-not-real",
+  "questions": [
+    {
+      "id": "fixture-01",
+      "slug": "fictional-contract-records",
+      "headline": "Which hypothetical contract notices were published?",
+      "status": "question_posed",
+      "citation_ids": []
+    },
+    {
+      "id": "fixture-02",
+      "slug": "fictional-policy-memos",
+      "headline": "What hypothetical guidance memos were produced?",
+      "status": "source_supported",
+      "citation_ids": [
+        "fixture-document-001"
+      ]
+    }
+  ],
+  "requests": [
+    {
+      "id": "fixture-request-01",
+      "state": "submitted_unverified",
+      "notes": "Fixture only. No agency received a request."
+    }
+  ]
+}
