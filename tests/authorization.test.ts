@@ -1,5 +1,5 @@
 import {describe,expect,it} from "vitest";
-import {authorize,canAssignRole,roles,type Principal} from "../lib/auth/authorization";
+import {authorize,canAssignRole,type Principal} from "../lib/auth/authorization";
 const principal=(subject:string|null, ...grants:Principal["roles"][number][]):Principal=>({subject,roles:grants});
 const visitor=principal(null);
 const owner=principal("person-A","requester");
@@ -53,6 +53,6 @@ describe("TPR object-level authorization",()=>{
    expect(canAssignRole(admin,"new-person","admin")).toBe(false);
    expect(canAssignRole(admin,"new-person","operator")).toBe(false);
    expect(canAssignRole(owner,"person-B","admin")).toBe(false);
-   for(const role of roles)expect(authorize(visitor,"grant_role",{kind:"role_assignment"})).toBe(false);
+   expect(authorize(visitor,"grant_role",{kind:"role_assignment"})).toBe(false);
  });
 });
