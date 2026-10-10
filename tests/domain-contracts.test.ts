@@ -43,7 +43,7 @@ describe("safe external API projections",()=>{
     expect(accepted.length).toBeGreaterThanOrEqual(3);
     expect(accepted.every(v=>Number.isSafeInteger(v) && v>0)).toBe(true);
     expect(new Set(accepted).size).toBe(accepted.length);
-    expect(mapping.pullRequestNumbers[4]).toBeNull(); // TPR-05 remains partial
+    expect(mapping.pullRequestNumbers[4]).toBe(12); // TPR-05 accepted after lockfile, lint and container smoke
   });
   it("declares OpenAPI schemas without pretending unfinished API endpoints exist",()=>{
     expect(openapi.openapi).toBe("3.1.0");
