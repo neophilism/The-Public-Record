@@ -1,50 +1,58 @@
 # Implementation and acceptance register
 
-Baseline: October 10, 2026. Source of truth: [complete plan](DEVELOPMENT_PLAN.md).
+**Planning baseline:** 2026-10-10. Canonical scope and 52 work packages: [development plan](DEVELOPMENT_PLAN.md).  
+**Accepted:** 6/52 (11.5%). **Public production service:** NOT RELEASED.  
+**Authoritative progress mapping:** [`.exechub/approved-pr-mapping.json`](../.exechub/approved-pr-mapping.json).
 
-## Rules
+A merged PR alone does not mean an entire package is accepted. Acceptance requires the relevant CI and work-specific evidence; deployment, external service wiring and independent security review have additional gates.
 
-**A merged commit or a passing unit test does not automatically satisfy a work package.**
-To mark TPR-XX complete, document its actual PR/commit, acceptance criteria, test results, operational evidence and reviewer decision. Missing evidence is **unverified**, not finished.
+| Work IDs | Workstream | Planned | Accepted | Unaccepted |
+|---|---|---:|---:|---:|
+| TPR-01–10 | Foundation, security, data | 10 | 6 | 4 |
+| TPR-11–18 | Research and templates | 8 | 0 | 8 |
+| TPR-19–27 | Citizen filing | 9 | 0 | 9 |
+| TPR-28–32 | Documentary publication | 5 | 0 | 5 |
+| TPR-33–40 | Eight public actions | 8 | 0 | 8 |
+| TPR-41–46 | Platform integration | 6 | 0 | 6 |
+| TPR-47–52 | Production and verification | 6 | 0 | 6 |
+| **Total** | | **52** | **6** | **46** |
 
-| Work IDs | Workstream | Planned | Verified completed |
-|---|---|---:|---:|
-| TPR-01–TPR-10 | Foundation, security, data | 10 | 5 |
-| TPR-11–TPR-18 | Research and templates | 8 | 0 |
-| TPR-19–TPR-27 | Citizen filing | 9 | 0 |
-| TPR-28–TPR-32 | Document publication | 5 | 0 |
-| TPR-33–TPR-40 | Public actions | 8 | 0 |
-| TPR-41–TPR-46 | Integration | 6 | 0 |
-| TPR-47–TPR-52 | Production | 6 | 0 |
-| **Total** | | **52** | **5** |
+## Accepted foundation work (repository/CI level)
 
-## Early implementation commits
+| Work | Evidence | Accepted scope |
+|---|---|---|
+| TPR-01 | [PR #1](https://github.com/neophilism/The-Public-Record/pull/1) | Approved-vs-engineering decision register, complete plan, contribution/handoff and acceptance specifications |
+| TPR-02 | [PR #2](https://github.com/neophilism/The-Public-Record/pull/2) | Cross-service ADR, strict public archive JSON contract, read-only adapter with offline and negative tests |
+| TPR-03 | [PR #3](https://github.com/neophilism/The-Public-Record/pull/3) | Per-flow security inventory, threat boundaries and tested publication policy; NOT an E2EESA conformance assertion |
+| TPR-04 | [PR #4](https://github.com/neophilism/The-Public-Record/pull/4) | OpenAPI and evidence/state/public projection schemas with tests |
+| TPR-05 | [PR #5](https://github.com/neophilism/The-Public-Record/pull/5), [PR #8](https://github.com/neophilism/The-Public-Record/pull/8), [PR #12](https://github.com/neophilism/The-Public-Record/pull/12) | Synthetic Next.js bootstrap, pinned lockfile, CI npm ci/lint/types/tests/build, non-root standalone image, Docker health smoke. PR #12 is the representative Engine Room mapping |
+| TPR-06 | [PR #6](https://github.com/neophilism/The-Public-Record/pull/6) | Public/private PostgreSQL schema, transactional checksum migrations, foreign-key ownership and ephemeral PostgreSQL RLS integration tests |
 
-Initial repository, plan and scaffold commits are preparatory. They are **not** release acceptance or completion of any of the 52 units.
+**Important distinction:** This verifies repository-scoped acceptance of foundation packages. A production environment, live participant permissions, real filing workflow or secure-upload deployment has **not** been accepted.
 
-## Next action
+## Partial foundations merged, not counted as accepted
 
-Implement TPR-01 and TPR-02 against the full acceptance criteria; document evidence before approving these work IDs. Apply E2EESA per component and data flow rather than treating the entire repository as a single cryptographic class.
+- **TPR-07 — [PR #9](https://github.com/neophilism/The-Public-Record/pull/9):** PKCE/login prerequisites, pinned OIDC token validation, trusted JWKS source and short-lived session tokens. Still needs parent OIDC provider registration, callback exchange, revocation and live session tests.
+- **TPR-08 — [PR #10](https://github.com/neophilism/The-Public-Record/pull/10):** role/object rule matrix and trusted transaction-scoped subject binding. Still needs authenticated API handlers, durable server-owned grants and end-to-end cross-user tests.
+- **TPR-09 — [PR #11](https://github.com/neophilism/The-Public-Record/pull/11):** cryptographically signed owner-specific quarantine upload permits. Still needs isolated private B2 storage, replay ledger, scanner, key management, quotas and negative live-bucket tests.
+- **TPR-10 — [PR #13](https://github.com/neophilism/The-Public-Record/pull/13):** append-only audit/consent event tables and retention tracking. Still needs restricted action emission, current-effective-consent service, external integrity checkpoint, operational and restore tests.
+- **TPR-11 — [PR #14](https://github.com/neophilism/The-Public-Record/pull/14):** official FOIA.gov directory adapter submitted for review. Acceptance remains pending live source/authorized API key integration and persistence; verify CI/merge separately.
 
-## Integration dependencies
+## Next dependency-ready steps
 
-FOIA Aggregator: public metadata/search with a versioned adapter.
-Justice For All: navigation/SSO only after an authenticated and authorized contract.
-Engine Room: approved roadmap manifest and explicit PR mappings.
-Liberty Nodes: reviewed public documents only, never private files.
+1. Finish TPR-07 provider integration using an authorized Justice For All OIDC issuer/client, and implement callback/cookie/session revocation.
+2. Wire server-side TPR-08 controls into authenticated routes with non-owner, non-superuser PostgreSQL runtime credentials.
+3. Complete private storage and scan pipeline (TPR-09, TPR-28) before allowing uploads. Never make original evidence public automatically.
+4. Wire durable audit/consent event emission (TPR-10) and verify privacy-safe logging.
+5. Advance FOIA.gov component data sync and verified filing-channel registry (TPR-11/12) without any automated third-party mass filing.
+6. Update Engine Room only from the approved source manifest, exact merged PR mappings and verified evidence; do not confuse commits with package acceptance.
 
-## Verified roadmap links
+## Dependencies and non-goals
 
-- TPR-01: [PR #1](https://github.com/neophilism/The-Public-Record/pull/1) — merged, CI green; plan, decisions, contribution and acceptance register.
-- TPR-02: [PR #2](https://github.com/neophilism/The-Public-Record/pull/2) — merged, CI green; service contract, typed parsing and adapter tests.
-- TPR-03: [PR #3](https://github.com/neophilism/The-Public-Record/pull/3) — merged, CI green; documented security inventory, threat register and publication policy tests. **No production crypto or storage assurance is claimed.**
+- FOIA Aggregator remains the public archive/search source; its direct versioned public JSON endpoint is not yet available.
+- Justice For All is the proposed parent identity/navigation provider. No trust is granted to browser-provided role claims.
+- Liberty Nodes may replicate **only approved public derivatives** with explicit additional consent.
+- Render, Neon and private B2 production services have not been provisioned by these commits; no paid resources or shared project secrets should be assumed.
+- The platform does not autonomously file FOIA requests, impersonate participants, claim agency acknowledgment without evidence, or publish unreviewed uploads.
 
-Remaining TPR-04–52 have no accepted mapping. The evidence listed is repository-scoped only; deployed infrastructure and independent security review remain unverified.
-
-## October 10 verification update
-
-- TPR-04: [PR #4](https://github.com/neophilism/The-Public-Record/pull/4) merged after green CI; OpenAPI schema, evidence-gated state transitions and public/private projections.
-- TPR-05: [PR #5](https://github.com/neophilism/The-Public-Record/pull/5) merged after green CI; synthetic fixtures, preview container, setup checks. **Partial package:** lockfile, explicit lint gate and container image acceptance remain outstanding; no accepted mapping.
-- TPR-06: [PR #6](https://github.com/neophilism/The-Public-Record/pull/6) merged after green CI; PostgreSQL 16 migration integration tests covered fresh migration, rerun, checksum drift rollback, ownership foreign key, and runtime-role RLS. **This does not mean a Neon production database was provisioned or audited.**
-
-The exact approved evidence mapping is `.exechub/approved-pr-mapping.json` with PR #5 explicitly unmapped. Production service acceptance remains separate from local CI acceptance.
+**Handoff rule:** Before each session, inspect the actual GitHub, CI, deployment and database state. Treat missing evidence as unverified—not as completed.
