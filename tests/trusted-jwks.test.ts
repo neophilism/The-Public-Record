@@ -6,7 +6,7 @@ const config={issuer:"https://identity.example.gov/realm",
 function valid(kid="trusted") {return {keys:[{kty:"RSA",kid,alg:"RS256",use:"sig",n:"AQAB",e:"AQAB"}]};}
 describe("trusted provider keys",()=>{
   it("uses only the server's fixed JWKS URI and refuses redirects",async()=>{
-    const fetcher=vi.fn(async(_input:RequestInfo|URL,_init?:RequestInit)=>new Response(JSON.stringify(valid()),{status:200}));
+    const fetcher=vi.fn(async(input:RequestInfo|URL,init?:RequestInit)=>{\n      expect(input).toBe(config.jwksUri);\n      expect(init?.redirect).toBe("error");\n      return new Response(JSON.stringify(valid()),{status:200});\n    });
     const r=createTrustedJwksResolver(config,fetcher as typeof fetch);
     await r.resolve("trusted");
     expect(fetcher).toHaveBeenCalledTimes(1);
