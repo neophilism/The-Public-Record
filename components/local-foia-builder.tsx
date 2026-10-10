@@ -7,7 +7,7 @@ const control={font:"inherit",padding:10,border:"1px solid #8d9896",borderRadius
 export default function LocalFoiaBuilder(){
   const [draft,setDraft]=useState(initial);
   const [confirmed,setConfirmed]=useState(false);
-  const update=<K extends keyof LocalRequestDraft>(key:K,value:LocalRequestDraft[K])=>setDraft(d=>({...d,[key]:value}));
+  function update<K extends keyof LocalRequestDraft>(key:K,value:LocalRequestDraft[K]) {setDraft(d=>({...d,[key]:value}));}
   const problems=validateLocalDraft(draft);
   const ready=problems.length===0 && confirmed;
   const text=problems.length===0?renderLocalDraftText(draft):"";
