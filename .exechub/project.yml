@@ -1,0 +1,26 @@
+project:
+  name: The-Public-Record
+  display_name: The Public Record
+  repository: neophilism/The-Public-Record
+  status: active-development
+
+roadmap:
+  version: 1
+  planned_prs: 52
+  approved: true
+
+milestones:
+  - name: Foundation and security
+    prs: 10
+  - name: Research and requests
+    prs: 8
+  - name: Citizen filing workflow
+    prs: 9
+  - name: Safe documentary publication
+    prs: 5
+  - name: Eight companion public actions
+    prs: 8
+  - name: Platform integration
+    prs: 6
+  - name: Production verification
+    prs: 6
