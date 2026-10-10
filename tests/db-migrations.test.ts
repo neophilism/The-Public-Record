@@ -10,13 +10,13 @@ describe.skipIf(!connectionString)("PostgreSQL initial migration and privacy con
   const db=new pg.Client({connectionString});
   beforeAll(async()=>{
     await db.connect();
-    expect(await runMigrations(db)).toEqual(["0001_core.sql"]);
+    expect(await runMigrations(db)).toEqual(["0001_core.sql","0002_audit_consent.sql"]);
   });
   afterAll(async()=>{await db.end()});
   it("is idempotent and preserves migration digests",async()=>{
     expect(await runMigrations(db)).toEqual([]);
     const r=await db.query("SELECT name,sha256 FROM tpr_private.schema_migrations");
-    expect(r.rows).toHaveLength(1);
+    expect(r.rows).toHaveLength(2);
     expect(r.rows[0].sha256).toMatch(/^[a-f0-9]{64}$/);
   });
   it("rolls back an attempted rewrite of an already-applied migration",async()=>{
@@ -25,7 +25,7 @@ describe.skipIf(!connectionString)("PostgreSQL initial migration and privacy con
       writeFileSync(path.join(dir,"0001_core.sql"),"-- an incompatible revision");
       await expect(runMigrations(db,dir)).rejects.toThrow("checksum changed");
       const r=await db.query("SELECT count(*)::int AS n FROM tpr_private.schema_migrations");
-      expect(r.rows[0].n).toBe(1);
+      expect(r.rows[0].n).toBe(2);
     }finally{rmSync(dir,{recursive:true,force:true})}
   });
   it("keeps public citations attached to real questions",async()=>{
@@ -63,5 +63,32 @@ describe.skipIf(!connectionString)("PostgreSQL initial migration and privacy con
       result=await db.query("SELECT id FROM tpr_private.request_drafts");
       expect(result.rows).toHaveLength(0);
     }finally{await db.query("RESET ROLE")}
+  });
+  it("records auditable events without allowing silent edits or deletion",async()=>{
+    const inserted=await db.query(`INSERT INTO tpr_private.audit_events
+      (owner_subject,actor_subject,action_code,object_kind,object_id,source_sha256)
+      VALUES($1,$2,$3,$4,$5,$6) RETURNING id`,
+      ["subject-A","subject-A","draft_created","request_draft","fixture-draft","a".repeat(64)]);
+    const id=inserted.rows[0].id;
+    await expect(db.query("UPDATE tpr_private.audit_events SET action_code=$1 WHERE id=$2",
+      ["draft_updated",id])).rejects.toThrow("append-only");
+    await expect(db.query("DELETE FROM tpr_private.audit_events WHERE id=$1",[id])).rejects.toThrow("append-only");
+    const original=await db.query("SELECT action_code,object_id FROM tpr_private.audit_events WHERE id=$1",[id]);
+    expect(original.rows[0]).toMatchObject({action_code:"draft_created",object_id:"fixture-draft"});
+  });
+  it("retains both grant and revocation events for one private object",async()=>{
+    await db.query(`INSERT INTO tpr_private.quarantine_objects
+      (id,draft_id,owner_subject,private_storage_key,sha256)
+      VALUES($1,$2,$3,$4,$5)`,
+      ["private-fixture","fixture-draft","subject-A","private/quarantine/v1/fixture-fixture","b".repeat(64)]);
+    await db.query(`INSERT INTO tpr_private.consent_events
+      (owner_subject,quarantine_object_id,scope,event_action)
+      VALUES($1,$2,$3,$4),($1,$2,$3,$5)`,
+      ["subject-A","private-fixture","web_publication","granted","revoked"]);
+    const r=await db.query(`SELECT event_action FROM tpr_private.consent_events
+      WHERE quarantine_object_id=$1 ORDER BY id`,["private-fixture"]);
+    expect(r.rows.map(x=>x.event_action).sort()).toEqual(["granted","revoked"]);
+    await expect(db.query("DELETE FROM tpr_private.consent_events WHERE quarantine_object_id=$1",
+      ["private-fixture"])).rejects.toThrow("append-only");
   });
 });
