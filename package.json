@@ -8,18 +8,21 @@
     "start": "next start",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "verify:baseline": "node scripts/verify-baseline.mjs"
+    "verify:baseline": "node scripts/verify-baseline.mjs",
+    "db:migrate": "node scripts/migrate.mjs"
   },
   "dependencies": {
     "next": "^15.5.0",
     "react": "^19.1.1",
-    "react-dom": "^19.1.1"
+    "react-dom": "^19.1.1",
+    "pg": "^8.16.0"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "typescript": "^5.9.0",
-    "vitest": "^3.2.0"
+    "vitest": "^3.2.0",
+    "@types/pg": "^8.15.0"
   }
 }
