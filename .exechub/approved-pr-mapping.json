@@ -1,14 +1,14 @@
 {
   "sourceRepository": "neophilism/The-Public-Record",
   "roadmapVersion": 1,
-  "mappingRevision": 2,
-  "note": "Evidence-only mapping: accepted PRs 1-4 and 6; PR 5 remains partial.",
+  "mappingRevision": 3,
+  "note": "TPR-05 acceptance completed via PRs #5, #8 and #12; mapped to final accepted PR #12. Only TPR-01..06 are accepted (except physical PR numbers not sequential). Later foundation PRs are partial pending external integration.",
   "pullRequestNumbers": [
     1,
     2,
     3,
     4,
-    null,
+    12,
     6,
     null,
     null,
