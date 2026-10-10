@@ -1,0 +1,14 @@
+{
+  "name": "The Public Record",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:1-22-bookworm",
+  "postCreateCommand": "npm install --no-audit --no-fund && npm run verify:baseline && npm test",
+  "forwardPorts": [
+    3000
+  ],
+  "portsAttributes": {
+    "3000": {
+      "label": "Local preview"
+    }
+  },
+  "remoteUser": "node"
+}
