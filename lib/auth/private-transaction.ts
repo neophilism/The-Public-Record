@@ -1,5 +1,5 @@
 import type {Pool,PoolClient} from "pg";
-import type {ValidSession} from "./session";
+export interface ServerVerifiedSubject { readonly subject:string; readonly issuer:string; readonly expiresAt:number; }
 
 /**
  * Every private SQL operation must run inside a transaction with a verified
@@ -10,7 +10,7 @@ import type {ValidSession} from "./session";
  */
 export async function withPrivateSubject<T>(
   pool:Pick<Pool,"connect">,
-  session:ValidSession,
+  session:ServerVerifiedSubject,
   fn:(client:PoolClient)=>Promise<T>
 ):Promise<T>{
   if(!session || typeof session.subject!=="string" ||
