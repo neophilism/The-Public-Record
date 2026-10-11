@@ -1,3 +1,5 @@
+> **Canonical PR roadmap:** [`registry/roadmap.json`](../registry/roadmap.json). This detailed plan remains intact as the historical scope source; agents must edit the canonical file for PR counts and mapping.
+
 # THE PUBLIC RECORD
 ## Comprehensive Software Development Plan and Independent-Account Handoff
 
