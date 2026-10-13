@@ -1,9 +1,15 @@
 {
-  "schemaVersion": 1,
   "repository": "neophilism/The-Public-Record",
-  "roadmapVersion": 1,
+  "title": "The-Public-Record",
   "planVerified": true,
   "plannedPrCount": 52,
+  "sourceFiles": [
+    ".exechub/project.yml",
+    "docs/DEVELOPMENT_PLAN.md",
+    ".exechub/approved-pr-mapping.json"
+  ],
+  "schemaVersion": 1,
+  "roadmapVersion": 1,
   "observedAt": "2026-10-11T17:41:22.950Z",
   "units": [
     {
@@ -12,7 +18,10 @@
       "origin": "original",
       "prs": [
         1
-      ]
+      ],
+      "dependsOn": [],
+      "externalDependencies": [],
+      "externalPrerequisites": []
     },
     {
       "id": "TPR-002",
@@ -20,7 +29,10 @@
       "origin": "original",
       "prs": [
         2
-      ]
+      ],
+      "dependsOn": [],
+      "externalDependencies": [],
+      "externalPrerequisites": []
     },
     {
       "id": "TPR-003",
@@ -28,7 +40,10 @@
       "origin": "original",
       "prs": [
         3
-      ]
+      ],
+      "dependsOn": [],
+      "externalDependencies": [],
+      "externalPrerequisites": []
     },
     {
       "id": "TPR-004",
@@ -36,7 +51,10 @@
       "origin": "original",
       "prs": [
         4
-      ]
+      ],
+      "dependsOn": [],
+      "externalDependencies": [],
+      "externalPrerequisites": []
     },
     {
       "id": "TPR-005",
@@ -44,7 +62,10 @@
       "origin": "original",
       "prs": [
         12
-      ]
+      ],
+      "dependsOn": [],
+      "externalDependencies": [],
+      "externalPrerequisites": []
     },
     {
       "id": "TPR-006",
@@ -52,25 +73,37 @@
       "origin": "original",
       "prs": [
         6
-      ]
+      ],
+      "dependsOn": [],
+      "externalDependencies": [],
+      "externalPrerequisites": []
     },
     {
       "id": "TPR-007",
       "title": "Foundation and security — approved package 7 of 10",
       "origin": "original",
-      "prs": []
+      "prs": [],
+      "dependsOn": [],
+      "externalDependencies": [],
+      "externalPrerequisites": []
     },
     {
       "id": "TPR-008",
       "title": "Foundation and security — approved package 8 of 10",
       "origin": "original",
-      "prs": []
+      "prs": [],
+      "dependsOn": [],
+      "externalDependencies": [],
+      "externalPrerequisites": []
     },
     {
       "id": "TPR-009",
       "title": "Foundation and security — approved package 9 of 10",
       "origin": "original",
-      "prs": []
+      "prs": [],
+      "dependsOn": [],
+      "externalDependencies": [],
+      "externalPrerequisites": []
     },
     {
       "id": "TPR-010",
@@ -78,7 +111,10 @@
       "origin": "original",
       "prs": [
         13
-      ]
+      ],
+      "dependsOn": [],
+      "externalDependencies": [],
+      "externalPrerequisites": []
     },
     {
       "id": "TPR-011",
@@ -86,7 +122,10 @@
       "origin": "original",
       "prs": [
         14
-      ]
+      ],
+      "dependsOn": [],
+      "externalDependencies": [],
+      "externalPrerequisites": []
     },
     {
       "id": "TPR-012",
@@ -94,7 +133,10 @@
       "origin": "original",
       "prs": [
         16
-      ]
+      ],
+      "dependsOn": [],
+      "externalDependencies": [],
+      "externalPrerequisites": []
     },
     {
       "id": "TPR-013",
@@ -102,7 +144,10 @@
       "origin": "original",
       "prs": [
         17
-      ]
+      ],
+      "dependsOn": [],
+      "externalDependencies": [],
+      "externalPrerequisites": []
     },
     {
       "id": "TPR-014",
@@ -110,13 +155,19 @@
       "origin": "original",
       "prs": [
         19
-      ]
+      ],
+      "dependsOn": [],
+      "externalDependencies": [],
+      "externalPrerequisites": []
     },
     {
       "id": "TPR-015",
       "title": "Research and requests — approved package 5 of 8",
       "origin": "original",
-      "prs": []
+      "prs": [],
+      "dependsOn": [],
+      "externalDependencies": [],
+      "externalPrerequisites": []
     },
     {
       "id": "TPR-016",
@@ -124,7 +175,10 @@
       "origin": "original",
       "prs": [
         22
-      ]
+      ],
+      "dependsOn": [],
+      "externalDependencies": [],
+      "externalPrerequisites": []
     },
     {
       "id": "TPR-017",
@@ -132,7 +186,10 @@
       "origin": "original",
       "prs": [
         20
-      ]
+      ],
+      "dependsOn": [],
+      "externalDependencies": [],
+      "externalPrerequisites": []
     },
     {
       "id": "TPR-018",
@@ -140,13 +197,19 @@
       "origin": "original",
       "prs": [
         21
-      ]
+      ],
+      "dependsOn": [],
+      "externalDependencies": [],
+      "externalPrerequisites": []
     },
     {
       "id": "TPR-019",
       "title": "Citizen filing workflow — approved package 1 of 9",
       "origin": "original",
-      "prs": []
+      "prs": [],
+      "dependsOn": [],
+      "externalDependencies": [],
+      "externalPrerequisites": []
     },
     {
       "id": "TPR-020",
@@ -154,199 +217,298 @@
       "origin": "original",
       "prs": [
         23
-      ]
+      ],
+      "dependsOn": [],
+      "externalDependencies": [],
+      "externalPrerequisites": []
     },
     {
       "id": "TPR-021",
       "title": "Citizen filing workflow — approved package 3 of 9",
       "origin": "original",
-      "prs": []
+      "prs": [],
+      "dependsOn": [],
+      "externalDependencies": [],
+      "externalPrerequisites": []
     },
     {
       "id": "TPR-022",
       "title": "Citizen filing workflow — approved package 4 of 9",
       "origin": "original",
-      "prs": []
+      "prs": [],
+      "dependsOn": [],
+      "externalDependencies": [],
+      "externalPrerequisites": []
     },
     {
       "id": "TPR-023",
       "title": "Citizen filing workflow — approved package 5 of 9",
       "origin": "original",
-      "prs": []
+      "prs": [],
+      "dependsOn": [],
+      "externalDependencies": [],
+      "externalPrerequisites": []
     },
     {
       "id": "TPR-024",
       "title": "Citizen filing workflow — approved package 6 of 9",
       "origin": "original",
-      "prs": []
+      "prs": [],
+      "dependsOn": [],
+      "externalDependencies": [],
+      "externalPrerequisites": []
     },
     {
       "id": "TPR-025",
       "title": "Citizen filing workflow — approved package 7 of 9",
       "origin": "original",
-      "prs": []
+      "prs": [],
+      "dependsOn": [],
+      "externalDependencies": [],
+      "externalPrerequisites": []
     },
     {
       "id": "TPR-026",
       "title": "Citizen filing workflow — approved package 8 of 9",
       "origin": "original",
-      "prs": []
+      "prs": [],
+      "dependsOn": [],
+      "externalDependencies": [],
+      "externalPrerequisites": []
     },
     {
       "id": "TPR-027",
       "title": "Citizen filing workflow — approved package 9 of 9",
       "origin": "original",
-      "prs": []
+      "prs": [],
+      "dependsOn": [],
+      "externalDependencies": [],
+      "externalPrerequisites": []
     },
     {
       "id": "TPR-028",
       "title": "Safe documentary publication — approved package 1 of 5",
       "origin": "original",
-      "prs": []
+      "prs": [],
+      "dependsOn": [],
+      "externalDependencies": [],
+      "externalPrerequisites": []
     },
     {
       "id": "TPR-029",
       "title": "Safe documentary publication — approved package 2 of 5",
       "origin": "original",
-      "prs": []
+      "prs": [],
+      "dependsOn": [],
+      "externalDependencies": [],
+      "externalPrerequisites": []
     },
     {
       "id": "TPR-030",
       "title": "Safe documentary publication — approved package 3 of 5",
       "origin": "original",
-      "prs": []
+      "prs": [],
+      "dependsOn": [],
+      "externalDependencies": [],
+      "externalPrerequisites": []
     },
     {
       "id": "TPR-031",
       "title": "Safe documentary publication — approved package 4 of 5",
       "origin": "original",
-      "prs": []
+      "prs": [],
+      "dependsOn": [],
+      "externalDependencies": [],
+      "externalPrerequisites": []
     },
     {
       "id": "TPR-032",
       "title": "Safe documentary publication — approved package 5 of 5",
       "origin": "original",
-      "prs": []
+      "prs": [],
+      "dependsOn": [],
+      "externalDependencies": [],
+      "externalPrerequisites": []
     },
     {
       "id": "TPR-033",
       "title": "Eight companion public actions — approved package 1 of 8",
       "origin": "original",
-      "prs": []
+      "prs": [],
+      "dependsOn": [],
+      "externalDependencies": [],
+      "externalPrerequisites": []
     },
     {
       "id": "TPR-034",
       "title": "Eight companion public actions — approved package 2 of 8",
       "origin": "original",
-      "prs": []
+      "prs": [],
+      "dependsOn": [],
+      "externalDependencies": [],
+      "externalPrerequisites": []
     },
     {
       "id": "TPR-035",
       "title": "Eight companion public actions — approved package 3 of 8",
       "origin": "original",
-      "prs": []
+      "prs": [],
+      "dependsOn": [],
+      "externalDependencies": [],
+      "externalPrerequisites": []
     },
     {
       "id": "TPR-036",
       "title": "Eight companion public actions — approved package 4 of 8",
       "origin": "original",
-      "prs": []
+      "prs": [],
+      "dependsOn": [],
+      "externalDependencies": [],
+      "externalPrerequisites": []
     },
     {
       "id": "TPR-037",
       "title": "Eight companion public actions — approved package 5 of 8",
       "origin": "original",
-      "prs": []
+      "prs": [],
+      "dependsOn": [],
+      "externalDependencies": [],
+      "externalPrerequisites": []
     },
     {
       "id": "TPR-038",
       "title": "Eight companion public actions — approved package 6 of 8",
       "origin": "original",
-      "prs": []
+      "prs": [],
+      "dependsOn": [],
+      "externalDependencies": [],
+      "externalPrerequisites": []
     },
     {
       "id": "TPR-039",
       "title": "Eight companion public actions — approved package 7 of 8",
       "origin": "original",
-      "prs": []
+      "prs": [],
+      "dependsOn": [],
+      "externalDependencies": [],
+      "externalPrerequisites": []
     },
     {
       "id": "TPR-040",
       "title": "Eight companion public actions — approved package 8 of 8",
       "origin": "original",
-      "prs": []
+      "prs": [],
+      "dependsOn": [],
+      "externalDependencies": [],
+      "externalPrerequisites": []
     },
     {
       "id": "TPR-041",
       "title": "Platform integration — approved package 1 of 6",
       "origin": "original",
-      "prs": []
+      "prs": [],
+      "dependsOn": [],
+      "externalDependencies": [],
+      "externalPrerequisites": []
     },
     {
       "id": "TPR-042",
       "title": "Platform integration — approved package 2 of 6",
       "origin": "original",
-      "prs": []
+      "prs": [],
+      "dependsOn": [],
+      "externalDependencies": [],
+      "externalPrerequisites": []
     },
     {
       "id": "TPR-043",
       "title": "Platform integration — approved package 3 of 6",
       "origin": "original",
-      "prs": []
+      "prs": [],
+      "dependsOn": [],
+      "externalDependencies": [],
+      "externalPrerequisites": []
     },
     {
       "id": "TPR-044",
       "title": "Platform integration — approved package 4 of 6",
       "origin": "original",
-      "prs": []
+      "prs": [],
+      "dependsOn": [],
+      "externalDependencies": [],
+      "externalPrerequisites": []
     },
     {
       "id": "TPR-045",
       "title": "Platform integration — approved package 5 of 6",
       "origin": "original",
-      "prs": []
+      "prs": [],
+      "dependsOn": [],
+      "externalDependencies": [],
+      "externalPrerequisites": []
     },
     {
       "id": "TPR-046",
       "title": "Platform integration — approved package 6 of 6",
       "origin": "original",
-      "prs": []
+      "prs": [],
+      "dependsOn": [],
+      "externalDependencies": [],
+      "externalPrerequisites": []
     },
     {
       "id": "TPR-047",
       "title": "Production verification — approved package 1 of 6",
       "origin": "original",
-      "prs": []
+      "prs": [],
+      "dependsOn": [],
+      "externalDependencies": [],
+      "externalPrerequisites": []
     },
     {
       "id": "TPR-048",
       "title": "Production verification — approved package 2 of 6",
       "origin": "original",
-      "prs": []
+      "prs": [],
+      "dependsOn": [],
+      "externalDependencies": [],
+      "externalPrerequisites": []
     },
     {
       "id": "TPR-049",
       "title": "Production verification — approved package 3 of 6",
       "origin": "original",
-      "prs": []
+      "prs": [],
+      "dependsOn": [],
+      "externalDependencies": [],
+      "externalPrerequisites": []
     },
     {
       "id": "TPR-050",
       "title": "Production verification — approved package 4 of 6",
       "origin": "original",
-      "prs": []
+      "prs": [],
+      "dependsOn": [],
+      "externalDependencies": [],
+      "externalPrerequisites": []
     },
     {
       "id": "TPR-051",
       "title": "Production verification — approved package 5 of 6",
       "origin": "original",
-      "prs": []
+      "prs": [],
+      "dependsOn": [],
+      "externalDependencies": [],
+      "externalPrerequisites": []
     },
     {
       "id": "TPR-052",
       "title": "Production verification — approved package 6 of 6",
       "origin": "original",
-      "prs": []
+      "prs": [],
+      "dependsOn": [],
+      "externalDependencies": [],
+      "externalPrerequisites": []
     }
   ],
   "pullRequests": [
