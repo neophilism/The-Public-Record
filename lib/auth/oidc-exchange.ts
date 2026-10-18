@@ -1,3 +1,4 @@
+import {readBoundedText} from "./bounded-response";
 import {IdentityError,type OidcProvider,type VerifiedIdentity,type TrustedJwkResolver,verifyOidcIdToken} from "./oidc-id-token";
 import {validateOidcCallbackState,type PendingOidcLogin} from "./oidc-login";
 
@@ -45,10 +46,8 @@ export async function completeOidcLogin(config:OidcExchangeConfig,returnedState:
     const response=await (deps.fetcher??fetch)(endpoint.href,{method:"POST",redirect:"error",
       cache:"no-store",credentials:"omit",headers:{"Content-Type":"application/x-www-form-urlencoded",
       Accept:"application/json"},body,signal:AbortSignal.timeout(5000)});
-    const length=Number(response.headers.get("content-length")||0);
-    if(!response.ok || length>32000)throw new IdentityError();
-    const raw=await response.text();
-    if(raw.length>32000)throw new IdentityError();
+    if(!response.ok)throw new IdentityError();
+    const raw=await readBoundedText(response,32000);
     const payload=JSON.parse(raw) as unknown;
     if(!payload || typeof payload!=="object" || Array.isArray(payload) ||
        !("id_token" in payload) || typeof payload.id_token!=="string")

@@ -1,4 +1,5 @@
 import type {JsonWebKey} from "node:crypto";
+import {readBoundedText} from "./bounded-response";
 import {IdentityError,type TrustedJwkResolver} from "./oidc-id-token";
 
 export interface TrustedJwksConfig {issuer:string;jwksUri:string;}
@@ -28,10 +29,8 @@ export function createTrustedJwksResolver(config:TrustedJwksConfig,fetcher:typeo
             method:"GET",redirect:"error",cache:"no-store",
             headers:{Accept:"application/json"},signal:AbortSignal.timeout(5000)
           });
-          const length=Number(response.headers.get("content-length")||0);
-          if(!response.ok || length>120000)throw new Error("unavailable");
-          const raw=await response.text();
-          if(raw.length>120000)throw new Error("oversized");
+          if(!response.ok)throw new Error("unavailable");
+          const raw=await readBoundedText(response,120000);
           const data=JSON.parse(raw) as unknown;
           if(typeof data!=="object" || data===null || !("keys" in data) ||
              !Array.isArray(data.keys) || data.keys.length>64)
