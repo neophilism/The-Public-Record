@@ -1,5 +1,8 @@
 import {afterAll,beforeAll,describe,it,expect} from "vitest";
 import pg from "pg";
+import {randomBytes} from "node:crypto";
+import {issueQuarantinePermit} from "../lib/storage/quarantine-permits";
+import {claimQuarantineIntent} from "../lib/storage/quarantine-claim";
 import {runMigrations} from "../scripts/migrate.mjs";
 import {mkdtempSync,writeFileSync,rmSync} from "node:fs";
 import {tmpdir} from "node:os";
@@ -10,13 +13,13 @@ describe.skipIf(!connectionString)("PostgreSQL initial migration and privacy con
   const db=new pg.Client({connectionString});
   beforeAll(async()=>{
     await db.connect();
-    expect(await runMigrations(db)).toEqual(["0001_core.sql","0002_audit_consent.sql"]);
+    expect(await runMigrations(db)).toEqual(["0001_core.sql","0002_audit_consent.sql","0005_quarantine_permit_uses.sql"]);
   });
   afterAll(async()=>{await db.end()});
   it("is idempotent and preserves migration digests",async()=>{
     expect(await runMigrations(db)).toEqual([]);
     const r=await db.query("SELECT name,sha256 FROM tpr_private.schema_migrations");
-    expect(r.rows).toHaveLength(2);
+    expect(r.rows).toHaveLength(3);
     expect(r.rows[0].sha256).toMatch(/^[a-f0-9]{64}$/);
   });
   it("rolls back an attempted rewrite of an already-applied migration",async()=>{
@@ -25,7 +28,7 @@ describe.skipIf(!connectionString)("PostgreSQL initial migration and privacy con
       writeFileSync(path.join(dir,"0001_core.sql"),"-- an incompatible revision");
       await expect(runMigrations(db,dir)).rejects.toThrow("checksum changed");
       const r=await db.query("SELECT count(*)::int AS n FROM tpr_private.schema_migrations");
-      expect(r.rows[0].n).toBe(2);
+      expect(r.rows[0].n).toBe(3);
     }finally{rmSync(dir,{recursive:true,force:true})}
   });
   it("keeps public citations attached to real questions",async()=>{
@@ -90,5 +93,17 @@ describe.skipIf(!connectionString)("PostgreSQL initial migration and privacy con
     expect(r.rows.map(x=>x.event_action).sort()).toEqual(["granted","revoked"]);
     await expect(db.query("DELETE FROM tpr_private.consent_events WHERE quarantine_object_id=$1",
       ["private-fixture"])).rejects.toThrow("append-only");
+  });
+  it("claims an owned quarantine upload once and denies cross-owner claims",async()=>{
+    const secret=randomBytes(32).toString("base64url");
+    const permit=issueQuarantinePermit({subject:"subject-A",ownerSubject:"subject-A",
+      draftId:"fixture-draft",mime:"application/pdf",bytes:1024},secret);
+    const first=await claimQuarantineIntent(db,permit.token,"subject-A",secret);
+    expect(first).toMatchObject({draftId:"fixture-draft",bytes:1024});
+    expect(await claimQuarantineIntent(db,permit.token,"subject-A",secret)).toBeNull();
+    expect(await claimQuarantineIntent(db,permit.token,"subject-B",secret)).toBeNull();
+    const missing=issueQuarantinePermit({subject:"subject-A",ownerSubject:"subject-A",
+      draftId:"missing-draft",mime:"application/pdf",bytes:1024},secret);
+    expect(await claimQuarantineIntent(db,missing.token,"subject-A",secret)).toBeNull();
   });
 });
