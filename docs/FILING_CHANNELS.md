@@ -11,3 +11,7 @@ Review freshness currently expires after 90 calendar days; stale entries suppres
 The example destinations in automated tests are **illustrative test fixtures**, not claims that a real federal component uses those channels. Operational TPR-12 acceptance still requires two independently verified genuine agency form formats, a persisting reviewed registry, source comparison/redirect QA, and human approval. Direct filing remains disabled until those gates pass.
 
 Official source: https://www.foia.gov/developer/
+
+## Self-filing guide preview (TPR-21)
+
+`buildSelfFilingGuide` turns a recently approved portal or mailbox route into step-by-step, citizen-performed instructions. Unknown, stale, rejected and spoofed routes produce no direct destination. The public guide page uses only the official FOIA.gov how-to link until an agency-specific registry is independently verified. It does not submit a request or claim agency receipt.
