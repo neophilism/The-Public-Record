@@ -106,6 +106,19 @@ describe.skipIf(!connectionString)("PostgreSQL initial migration and privacy con
       state:login.state,nonce:login.nonce,codeVerifier:login.codeVerifier});
     expect(await createPgPendingLoginStore(db,binding).consume(login.state)).toBeNull();
   });
+  it("keeps provider identities separate even with the same subject",async()=>{
+    const now=Math.floor(Date.now()/1000);
+    const secret=randomBytes(32).toString("base64url");
+    const left={issuer:"https://provider-a.example.gov",subject:"same-subject",
+      issuedAt:now,expiresAt:now+900};
+    const right={...left,issuer:"https://provider-b.example.gov"};
+    const a=await issueRegisteredSession(db,left,secret,now);
+    const b=await issueRegisteredSession(db,right,secret,now);
+    await disableMemberIdentity(db,left.issuer,left.subject);
+    expect(await verifyRegisteredSession(db,a.token,secret,now)).toBeNull();
+    expect(await verifyRegisteredSession(db,b.token,secret,now)).toMatchObject({
+      issuer:right.issuer,subject:right.subject});
+  });
   it("denies missing and revoked sessions despite a valid MAC",async()=>{
     const now=Math.floor(Date.now()/1000);
     const secret=randomBytes(32).toString("base64url");
