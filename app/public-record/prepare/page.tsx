@@ -11,6 +11,7 @@ export default function PreparePage(){
       <p><a href="https://www.foia.gov/how-to.html" target="_blank" rel="noopener noreferrer">Check current official FOIA filing instructions ↗</a></p>
     </header>
     <LocalFoiaBuilder/>
+    <p className="nonprint"><Link href="/public-record/self-file">How to file your draft yourself →</Link></p>
     <footer className="nonprint" style={{marginTop:35,fontSize:14,color:"#465451"}}>
       <p>Private evidence storage, verified agency destinations, accounts, and automatic correspondence tracking are not yet active. Avoid entering confidential details in this early preview.</p>
     </footer>
