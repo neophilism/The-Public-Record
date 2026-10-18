@@ -3,7 +3,7 @@ import {IdentityError} from "./oidc-id-token";
 /** Enforce a byte limit while reading, including chunked or decompressed responses. */
 export async function readBoundedText(response:Response,maxBytes:number):Promise<string> {
   const declared=response.headers.get("content-length");
-  if(declared!==null && (!/^\\d+$/.test(declared) || Number(declared)>maxBytes))
+  if(declared!==null && (!/^[0-9]+$/.test(declared) || Number(declared)>maxBytes))
     throw new IdentityError();
   if(!response.body)throw new IdentityError();
   const reader=response.body.getReader();
