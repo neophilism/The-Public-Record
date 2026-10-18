@@ -11,5 +11,6 @@ export default function Home(){return <main style={{maxWidth:880,margin:"auto",p
     <p>Draft a records request locally, then verify the agency's instructions and file it yourself. Your draft isn't uploaded or saved by us.</p>
     <p><Link href="/public-record/prepare">Open private drafting preview →</Link></p>
   </section>
+  <p><Link href="/public-record/work">Browse fictional work-card preview →</Link></p>
   <p style={{marginTop:36}}><a href="https://www.foia.gov/how-to.html">Official federal FOIA information</a></p>
 </main>}
