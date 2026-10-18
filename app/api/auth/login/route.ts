@@ -1,10 +1,10 @@
-import {NextRequest,NextResponse} from "next/server";
+import {NextResponse} from "next/server";
 import {beginOidcLogin} from "@/lib/auth/oidc-login";
 import {createBrowserBinding,savePendingLogin} from "@/lib/auth/oidc-pending-store";
 import {identityDatabase,identityErrorResponse,LOGIN_COOKIE_NAME,runtimeIdentityConfig} from "@/lib/auth/oidc-runtime";
 
 export const runtime="nodejs";
-export async function GET(_request:NextRequest) {
+export async function GET() {
   let config;
   try {config=runtimeIdentityConfig();} catch {return identityErrorResponse(503);}
   try {

@@ -14,8 +14,12 @@ export async function GET(request:NextRequest) {
   const state=url.searchParams.get("state");
   const code=url.searchParams.get("code");
   const binding=request.cookies.get(LOGIN_COOKIE_NAME)?.value;
-  if(url.searchParams.has("error") || !binding || !state || !code)
-    return identityErrorResponse();
+  if(url.searchParams.has("error") || url.searchParams.getAll("state").length!==1 ||
+     url.searchParams.getAll("code").length!==1 || !binding || !state || !code) {
+    const response=identityErrorResponse();
+    response.headers.append("Set-Cookie",`${LOGIN_COOKIE_NAME}=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0`);
+    return response;
+  }
   try {
     const db=await identityDatabase(config.databaseUrl);
     try {
@@ -23,7 +27,7 @@ export async function GET(request:NextRequest) {
         pending:createPgPendingLoginStore(db,binding),
         keys:createTrustedJwksResolver({issuer:config.issuer,jwksUri:config.jwksUri})});
       const session=await issueRegisteredSession(db,identity,config.sessionSigningKey);
-      const response=NextResponse.redirect(new URL("/",request.url),303);
+      const response=NextResponse.redirect(new URL("/",config.redirectUri),303);
       response.headers.set("Cache-Control","no-store");
       response.headers.set("Referrer-Policy","no-referrer");
       response.cookies.set(SESSION_COOKIE_NAME,session.token,{httpOnly:true,secure:true,

@@ -17,6 +17,14 @@ export function runtimeIdentityConfig():RuntimeIdentityConfig {
     clientId:process.env.OIDC_CLIENT_ID,redirectUri:process.env.OIDC_REDIRECT_URI,
     sessionSigningKey:process.env.SESSION_SIGNING_KEY,databaseUrl:process.env.DATABASE_URL};
   if(Object.values(config).some(value=>!value))throw new IdentityError();
+  try {
+    const redirect=new URL(config.redirectUri!);
+    if(redirect.protocol!=="https:" || redirect.username || redirect.password ||
+       redirect.hash || redirect.port)throw new IdentityError();
+    const key=Buffer.from(config.sessionSigningKey!,"base64url");
+    if(key.length<32 || key.toString("base64url")!==config.sessionSigningKey)
+      throw new IdentityError();
+  } catch {throw new IdentityError();}
   return config as RuntimeIdentityConfig;
 }
 
