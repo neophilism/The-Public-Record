@@ -1,5 +1,7 @@
 import {afterAll,beforeAll,describe,it,expect} from "vitest";
 import pg from "pg";
+import {beginOidcLogin} from "../lib/auth/oidc-login";
+import {createBrowserBinding,createPgPendingLoginStore,savePendingLogin} from "../lib/auth/oidc-pending-store";
 import {runMigrations} from "../scripts/migrate.mjs";
 import {mkdtempSync,writeFileSync,rmSync} from "node:fs";
 import {tmpdir} from "node:os";
@@ -10,13 +12,13 @@ describe.skipIf(!connectionString)("PostgreSQL initial migration and privacy con
   const db=new pg.Client({connectionString});
   beforeAll(async()=>{
     await db.connect();
-    expect(await runMigrations(db)).toEqual(["0001_core.sql","0002_audit_consent.sql"]);
+    expect(await runMigrations(db)).toEqual(["0001_core.sql","0002_audit_consent.sql","0003_oidc_login.sql"]);
   });
   afterAll(async()=>{await db.end()});
   it("is idempotent and preserves migration digests",async()=>{
     expect(await runMigrations(db)).toEqual([]);
     const r=await db.query("SELECT name,sha256 FROM tpr_private.schema_migrations");
-    expect(r.rows).toHaveLength(2);
+    expect(r.rows).toHaveLength(3);
     expect(r.rows[0].sha256).toMatch(/^[a-f0-9]{64}$/);
   });
   it("rolls back an attempted rewrite of an already-applied migration",async()=>{
@@ -25,7 +27,7 @@ describe.skipIf(!connectionString)("PostgreSQL initial migration and privacy con
       writeFileSync(path.join(dir,"0001_core.sql"),"-- an incompatible revision");
       await expect(runMigrations(db,dir)).rejects.toThrow("checksum changed");
       const r=await db.query("SELECT count(*)::int AS n FROM tpr_private.schema_migrations");
-      expect(r.rows[0].n).toBe(2);
+      expect(r.rows[0].n).toBe(3);
     }finally{rmSync(dir,{recursive:true,force:true})}
   });
   it("keeps public citations attached to real questions",async()=>{
@@ -90,5 +92,16 @@ describe.skipIf(!connectionString)("PostgreSQL initial migration and privacy con
     expect(r.rows.map(x=>x.event_action).sort()).toEqual(["granted","revoked"]);
     await expect(db.query("DELETE FROM tpr_private.consent_events WHERE quarantine_object_id=$1",
       ["private-fixture"])).rejects.toThrow("append-only");
+  });
+  it("binds OIDC state to one browser and consumes it once",async()=>{
+    const config={issuer:"https://login.example.gov",authorizationEndpoint:"https://login.example.gov/auth",
+      clientId:"record",redirectUri:"https://record.example.org/callback"};
+    const login=beginOidcLogin(config,Math.floor(Date.now()/1000));
+    const binding=createBrowserBinding();
+    await savePendingLogin(db,binding,login);
+    expect(await createPgPendingLoginStore(db,createBrowserBinding()).consume(login.state)).toBeNull();
+    expect(await createPgPendingLoginStore(db,binding).consume(login.state)).toMatchObject({
+      state:login.state,nonce:login.nonce,codeVerifier:login.codeVerifier});
+    expect(await createPgPendingLoginStore(db,binding).consume(login.state)).toBeNull();
   });
 });
