@@ -11,3 +11,14 @@ CREATE TABLE IF NOT EXISTS tpr_private.oidc_login_transactions (
 CREATE INDEX IF NOT EXISTS oidc_login_expiry_idx
   ON tpr_private.oidc_login_transactions(expires_at);
 REVOKE ALL ON tpr_private.oidc_login_transactions FROM PUBLIC;
+
+CREATE TABLE IF NOT EXISTS tpr_private.oidc_sessions (
+  sid_sha256 text PRIMARY KEY CHECK (sid_sha256 ~ '^[0-9a-f]{64}$'),
+  issuer text NOT NULL CHECK (issuer LIKE 'https://%'),
+  subject text NOT NULL CHECK (length(subject) BETWEEN 1 AND 255),
+  expires_at timestamptz NOT NULL,
+  revoked_at timestamptz,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS oidc_sessions_expiry_idx ON tpr_private.oidc_sessions(expires_at);
+REVOKE ALL ON tpr_private.oidc_sessions FROM PUBLIC;

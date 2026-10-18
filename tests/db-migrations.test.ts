@@ -2,6 +2,8 @@ import {afterAll,beforeAll,describe,it,expect} from "vitest";
 import pg from "pg";
 import {beginOidcLogin} from "../lib/auth/oidc-login";
 import {createBrowserBinding,createPgPendingLoginStore,savePendingLogin} from "../lib/auth/oidc-pending-store";
+import {issueRegisteredSession,verifyRegisteredSession,revokeRegisteredSession} from "../lib/auth/oidc-session-store";
+import {randomBytes} from "node:crypto";
 import {runMigrations} from "../scripts/migrate.mjs";
 import {mkdtempSync,writeFileSync,rmSync} from "node:fs";
 import {tmpdir} from "node:os";
@@ -103,5 +105,16 @@ describe.skipIf(!connectionString)("PostgreSQL initial migration and privacy con
     expect(await createPgPendingLoginStore(db,binding).consume(login.state)).toMatchObject({
       state:login.state,nonce:login.nonce,codeVerifier:login.codeVerifier});
     expect(await createPgPendingLoginStore(db,binding).consume(login.state)).toBeNull();
+  });
+  it("denies missing and revoked sessions despite a valid MAC",async()=>{
+    const now=Math.floor(Date.now()/1000);
+    const secret=randomBytes(32).toString("base64url");
+    const identity={issuer:"https://login.example.gov",subject:"fixture-person",
+      issuedAt:now,expiresAt:now+900};
+    const issued=await issueRegisteredSession(db,identity,secret,now);
+    expect(await verifyRegisteredSession(db,issued.token,secret,now)).toMatchObject({
+      subject:"fixture-person"});
+    await revokeRegisteredSession(db,issued.id);
+    expect(await verifyRegisteredSession(db,issued.token,secret,now)).toBeNull();
   });
 });
