@@ -1,6 +1,6 @@
-# TPR-07 — Parent identity integration contract
+# TPR-07  Parent identity integration contract
 
-**Status:** cryptographically verified OIDC primitives, with synthetic-provider tests. No live account enrollment, identity provider or production session endpoint is enabled.
+**Status:** cryptographically verified OIDC primitives and a browser-bound, one-time PostgreSQL authorization transaction store, with synthetic-provider tests. No live account enrollment, identity provider or production session endpoint is enabled.
 
 ## Trust boundaries
 
@@ -15,7 +15,7 @@
 
 ## Portable integration contract
 
-Modules: `lib/auth/oidc-login.ts` (authorization parameters), `lib/auth/trusted-jwks.ts` (pinned key fetching), `lib/auth/oidc-id-token.ts` (signature and claims) and `lib/auth/session.ts` (short-lived signed session).
+Modules: `lib/auth/oidc-login.ts` (authorization parameters), `lib/auth/oidc-pending-store.ts` (browser-bound, atomic state storage), `lib/auth/oidc-exchange.ts` (token exchange), `lib/auth/trusted-jwks.ts` (pinned key fetching), `lib/auth/oidc-id-token.ts` (signature and claims) and `lib/auth/session.ts` (short-lived signed session).
 
 To replace the parent identity provider, supply verified configuration including issuer, authorization endpoint, client ID, redirect URI and JWKS URI. Same-origin issuer/JWKS and authorization endpoints are required in this first profile. A different trusted provider topology requires an explicit ADR and negative security tests; never loosen validation simply to make login work.
 
@@ -24,7 +24,7 @@ Test fixtures generate synthetic RSA signing keys inside the test process. No sa
 ## Remaining gates before TPR-07 can be accepted as operational
 
 1. Verify the actual parent identity provider metadata, client registration and trusted redirect URI.
-2. Implement backend authorization callback and code exchange with full PKCE/state transaction lifecycle and replay protection.
+2. Wire the implemented PKCE/state store and code exchange into backend start/callback handlers, including a secure browser-binding cookie, CSRF denial, expiry cleanup and provider error handling.
 3. Verify token claims against that provider, persisted session invalidation/logout, HTTP cookie handling, CSRF boundaries and account deletion.
 4. Prove unauthenticated/private API denials, refresh/logout and provider failover behavior in a running deployed environment.
 5. Confirm E2EESA identity/authentication profile applicability and security-review evidence.

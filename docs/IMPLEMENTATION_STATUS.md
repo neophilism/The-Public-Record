@@ -8,13 +8,13 @@ A merged PR alone does not mean an entire package is accepted. Acceptance requir
 
 | Work IDs | Workstream | Planned | Accepted | Unaccepted |
 |---|---|---:|---:|---:|
-| TPR-01–10 | Foundation, security, data | 10 | 6 | 4 |
-| TPR-11–18 | Research and templates | 8 | 0 | 8 |
-| TPR-19–27 | Citizen filing | 9 | 0 | 9 |
-| TPR-28–32 | Documentary publication | 5 | 0 | 5 |
-| TPR-33–40 | Eight public actions | 8 | 0 | 8 |
-| TPR-41–46 | Platform integration | 6 | 0 | 6 |
-| TPR-47–52 | Production and verification | 6 | 0 | 6 |
+| TPR-0110 | Foundation, security, data | 10 | 6 | 4 |
+| TPR-1118 | Research and templates | 8 | 0 | 8 |
+| TPR-1927 | Citizen filing | 9 | 0 | 9 |
+| TPR-2832 | Documentary publication | 5 | 0 | 5 |
+| TPR-3340 | Eight public actions | 8 | 0 | 8 |
+| TPR-4146 | Platform integration | 6 | 0 | 6 |
+| TPR-4752 | Production and verification | 6 | 0 | 6 |
 | **Total** | | **52** | **6** | **46** |
 
 ## Accepted foundation work (repository/CI level)
@@ -32,11 +32,11 @@ A merged PR alone does not mean an entire package is accepted. Acceptance requir
 
 ## Partial foundations merged, not counted as accepted
 
-- **TPR-07 — [PR #9](https://github.com/neophilism/The-Public-Record/pull/9):** PKCE/login prerequisites, pinned OIDC token validation, trusted JWKS source and short-lived session tokens. Still needs parent OIDC provider registration, callback exchange, revocation and live session tests.
-- **TPR-08 — [PR #10](https://github.com/neophilism/The-Public-Record/pull/10):** role/object rule matrix and trusted transaction-scoped subject binding. Still needs authenticated API handlers, durable server-owned grants and end-to-end cross-user tests.
-- **TPR-09 — [PR #11](https://github.com/neophilism/The-Public-Record/pull/11):** cryptographically signed owner-specific quarantine upload permits. Still needs isolated private B2 storage, replay ledger, scanner, key management, quotas and negative live-bucket tests.
-- **TPR-10 — [PR #13](https://github.com/neophilism/The-Public-Record/pull/13):** append-only audit/consent event tables and retention tracking. Still needs restricted action emission, current-effective-consent service, external integrity checkpoint, operational and restore tests.
-- **TPR-11 — [PR #14](https://github.com/neophilism/The-Public-Record/pull/14):** official FOIA.gov directory adapter submitted for review. Acceptance remains pending live source/authorized API key integration and persistence; verify CI/merge separately.
+- **TPR-07  [PR #9](https://github.com/neophilism/The-Public-Record/pull/9):** PKCE/login prerequisites, pinned OIDC token validation, trusted JWKS source and short-lived session tokens. [Draft PR #28](https://github.com/neophilism/The-Public-Record/pull/28) adds a browser-bound transaction store and token exchange boundary; it is not merged or accepted. Still needs parent OIDC provider registration, live callback wiring, revocation and live session tests.
+- **TPR-08  [PR #10](https://github.com/neophilism/The-Public-Record/pull/10):** role/object rule matrix and trusted transaction-scoped subject binding. Still needs authenticated API handlers, durable server-owned grants and end-to-end cross-user tests.
+- **TPR-09  [PR #11](https://github.com/neophilism/The-Public-Record/pull/11):** cryptographically signed owner-specific quarantine upload permits. Still needs isolated private B2 storage, replay ledger, scanner, key management, quotas and negative live-bucket tests.
+- **TPR-10  [PR #13](https://github.com/neophilism/The-Public-Record/pull/13):** append-only audit/consent event tables and retention tracking. Still needs restricted action emission, current-effective-consent service, external integrity checkpoint, operational and restore tests.
+- **TPR-11  [PR #14](https://github.com/neophilism/The-Public-Record/pull/14):** official FOIA.gov directory adapter submitted for review. Acceptance remains pending live source/authorized API key integration and persistence; verify CI/merge separately.
 
 ## Next dependency-ready steps
 
@@ -55,4 +55,4 @@ A merged PR alone does not mean an entire package is accepted. Acceptance requir
 - Render, Neon and private B2 production services have not been provisioned by these commits; no paid resources or shared project secrets should be assumed.
 - The platform does not autonomously file FOIA requests, impersonate participants, claim agency acknowledgment without evidence, or publish unreviewed uploads.
 
-**Handoff rule:** Before each session, inspect the actual GitHub, CI, deployment and database state. Treat missing evidence as unverified—not as completed.
+**Handoff rule:** Before each session, inspect the actual GitHub, CI, deployment and database state. Treat missing evidence as unverifiednot as completed.
