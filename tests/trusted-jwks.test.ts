@@ -23,6 +23,17 @@ describe("trusted provider keys",()=>{
     const bad=createTrustedJwksResolver(config,vi.fn(async()=>new Response(JSON.stringify({keys:[{...valid().keys[0],d:"secret"}]}),{status:200})) as typeof fetch);
     await expect(bad.resolve("trusted")).rejects.toThrow(IdentityError);
   });
+  it("rejects an oversized chunked key response without Content-Length",async()=>{
+    const streamed=new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.enqueue(new Uint8Array(120001));
+        controller.close();
+      }
+    });
+    const resolver=createTrustedJwksResolver(config,
+      vi.fn(async()=>new Response(streamed,{status:200})) as typeof fetch);
+    await expect(resolver.resolve("trusted")).rejects.toThrow(IdentityError);
+  });
   it("blocks an external-host key URL and oversized payload",async()=>{
     expect(()=>createTrustedJwksResolver({...config,jwksUri:"https://attacker.test/keys"})).toThrow(IdentityError);
     const huge=createTrustedJwksResolver(config,vi.fn(async()=>new Response("x".repeat(120001),{status:200})) as typeof fetch);
