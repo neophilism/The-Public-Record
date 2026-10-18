@@ -18,3 +18,7 @@ Adapter status must distinguish `not_configured`, `unavailable`, `invalid_contra
 
 ## Schema changes
 Add `v2` rather than silently weakening `v1` privacy fields. Tests against synthetic fixtures are mandatory; then negotiate and verify the matching upstream producer contract.
+
+## Guarded HTTP transport
+
+`createPublicArchiveHttpAdapter` implements a read-only, bounded HTTPS GET for a configured public JSON endpoint. It sends only search text and a bounded limit, omits credentials, rejects redirects/HTML and returns errors as unavailable rather than an empty result. The resolver marks every result `exhaustive: false`; zero matches never prove that records do not exist. No upstream API URL has been verified or configured, so this remains an integration stub pending agreement and live contract tests.
