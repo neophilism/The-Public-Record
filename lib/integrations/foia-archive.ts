@@ -8,8 +8,8 @@ export type LookupResult =
   | {state:"not_configured"|"unavailable"|"incompatible_contract";data:null;exhaustive:false};
 
 /**
- * This contract adapter deliberately has no outbound HTTP client yet:
- * the upstream FOIA Aggregator only exposes HTML browse pages today.
+ * An injected transport may use the guarded public HTTP adapter, but no
+ * compatible upstream JSON endpoint has been verified or configured.
  */
 export async function findPublicRecords(query:string,adapter?:PublicArchiveAdapter):Promise<LookupResult>{
   if (!adapter) return {state:"not_configured",data:null,exhaustive:false};

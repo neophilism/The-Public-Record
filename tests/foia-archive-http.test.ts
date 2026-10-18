@@ -24,6 +24,7 @@ describe("read-only public archive transport",()=>{
     const adapter=createPublicArchiveHttpAdapter({endpoint},fetcher as typeof fetch);
     const result=await findPublicRecords(" released records ",adapter);
     expect(result.state).toBe("available");
+    expect(result.exhaustive).toBe(false);
     expect(fetcher).toHaveBeenCalledOnce();
   });
   it("never turns outage, HTML or invalid contract into a negative search result",async()=>{
@@ -33,6 +34,7 @@ describe("read-only public archive transport",()=>{
         createPublicArchiveHttpAdapter({endpoint},fetcher as typeof fetch));
       expect(result.state).not.toBe("available");
       expect(result.data).toBeNull();
+      expect(result.exhaustive).toBe(false);
     }
   });
   it("rejects insecure or redirecting endpoint configuration",()=>{
