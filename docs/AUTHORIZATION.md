@@ -1,6 +1,6 @@
 # TPR-08 — Authorization rules and server-owned role grants
 
-**Current implementation:** domain policy and transaction-scoping helper, not a production authorization gateway.
+**Current implementation:** domain policy, transaction scoping and append-only server-owned role grant events with subject/issuer RLS. No production private API gateway is enabled.
 
 ## Default denial
 
@@ -19,7 +19,7 @@ Only public questions marked published and official agency directory metadata ar
 | Redacted audit index | Read | Admin/operator only; no raw participant content |
 | Role assignments | In-band escalation prohibited | Privileged provisioning needs a separate recorded approval process |
 
-The application role list is `requester`, `contributor`, `researcher`, `editor`, `records_reviewer`, `moderator`, `admin`, `operator`. Visitor is represented by no authenticated user. Clients may request an action but never choose their own server role, role-granting authority or assignment.
+The active role set is the latest grant/revocation event per role, loaded by `withRolePrincipal` inside a transaction bound to a verified issuer and subject. A runtime database role needs SELECT only; only a separate offline provisioning role may append grant events. The application role list is `requester`, `contributor`, `researcher`, `editor`, `records_reviewer`, `moderator`, `admin`, `operator`. Visitor is represented by no authenticated user. Clients may request an action but never choose their own server role, role-granting authority or assignment.
 
 ## Database access
 
@@ -29,7 +29,7 @@ The application role list is `requester`, `contributor`, `researcher`, `editor`,
 
 ## Remaining checks
 
-- Verify OIDC/role membership source and record per-project grants in PostgreSQL.
+- Verify the OIDC session through the active session registry before calling `withRolePrincipal`, and provision project role grants through a distinct audited operator process.
 - Add real authenticated API handlers that call `authorize()` and `withPrivateSubject()` before every private operation.
 - Expand RLS integration tests for cross-user reads/writes across all private tables and validate runtime role grants, not database-owner bypass paths.
 - Add durable assigned-case access, consent revocation and audit trails; map user deletion to resource owners.

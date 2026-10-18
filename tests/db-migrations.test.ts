@@ -10,13 +10,13 @@ describe.skipIf(!connectionString)("PostgreSQL initial migration and privacy con
   const db=new pg.Client({connectionString});
   beforeAll(async()=>{
     await db.connect();
-    expect(await runMigrations(db)).toEqual(["0001_core.sql","0002_audit_consent.sql"]);
+    expect(await runMigrations(db)).toEqual(["0001_core.sql","0002_audit_consent.sql","0004_role_grant_events.sql"]);
   });
   afterAll(async()=>{await db.end()});
   it("is idempotent and preserves migration digests",async()=>{
     expect(await runMigrations(db)).toEqual([]);
     const r=await db.query("SELECT name,sha256 FROM tpr_private.schema_migrations");
-    expect(r.rows).toHaveLength(2);
+    expect(r.rows).toHaveLength(3);
     expect(r.rows[0].sha256).toMatch(/^[a-f0-9]{64}$/);
   });
   it("rolls back an attempted rewrite of an already-applied migration",async()=>{
@@ -25,7 +25,7 @@ describe.skipIf(!connectionString)("PostgreSQL initial migration and privacy con
       writeFileSync(path.join(dir,"0001_core.sql"),"-- an incompatible revision");
       await expect(runMigrations(db,dir)).rejects.toThrow("checksum changed");
       const r=await db.query("SELECT count(*)::int AS n FROM tpr_private.schema_migrations");
-      expect(r.rows[0].n).toBe(2);
+      expect(r.rows[0].n).toBe(3);
     }finally{rmSync(dir,{recursive:true,force:true})}
   });
   it("keeps public citations attached to real questions",async()=>{
@@ -90,5 +90,30 @@ describe.skipIf(!connectionString)("PostgreSQL initial migration and privacy con
     expect(r.rows.map(x=>x.event_action).sort()).toEqual(["granted","revoked"]);
     await expect(db.query("DELETE FROM tpr_private.consent_events WHERE quarantine_object_id=$1",
       ["private-fixture"])).rejects.toThrow("append-only");
+  });
+  it("restricts role-grant reads by verified issuer and subject",async()=>{
+    await db.query(`INSERT INTO tpr_private.role_grant_events
+      (issuer,subject,role,event_action,actor_subject,reason)
+      VALUES ($1,$2,$3,$4,$5,$6),($1,$7,$3,$4,$5,$6)`,
+      ["https://identity.example.gov","role-person-A","requester","granted","bootstrap",
+       "Synthetic test provisioning","role-person-B"]);
+    await db.query("CREATE ROLE tpr_ci_roles NOLOGIN");
+    await db.query("GRANT USAGE ON SCHEMA tpr_private TO tpr_ci_roles");
+    await db.query("GRANT SELECT ON tpr_private.role_grant_events TO tpr_ci_roles");
+    await db.query("SET ROLE tpr_ci_roles");
+    try {
+      await db.query("SET tpr.subject = 'role-person-A'");
+      await db.query("SET tpr.issuer = 'https://identity.example.gov'");
+      const visible=await db.query("SELECT subject FROM tpr_private.role_grant_events");
+      expect(visible.rows.map(x=>x.subject)).toEqual(["role-person-A"]);
+      await expect(db.query(`INSERT INTO tpr_private.role_grant_events
+        (issuer,subject,role,event_action,actor_subject,reason)
+        VALUES ('https://identity.example.gov','role-person-A','admin','granted','self','test')`))
+        .rejects.toThrow();
+    } finally {
+      await db.query("RESET ROLE");
+      await db.query("RESET tpr.subject");
+      await db.query("RESET tpr.issuer");
+    }
   });
 });
