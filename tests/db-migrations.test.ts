@@ -2,7 +2,7 @@ import {afterAll,beforeAll,describe,it,expect} from "vitest";
 import pg from "pg";
 import {beginOidcLogin} from "../lib/auth/oidc-login";
 import {createBrowserBinding,createPgPendingLoginStore,savePendingLogin} from "../lib/auth/oidc-pending-store";
-import {issueRegisteredSession,verifyRegisteredSession,revokeRegisteredSession} from "../lib/auth/oidc-session-store";
+import {issueRegisteredSession,verifyRegisteredSession,revokeRegisteredSession,disableMemberIdentity} from "../lib/auth/oidc-session-store";
 import {randomBytes} from "node:crypto";
 import {runMigrations} from "../scripts/migrate.mjs";
 import {mkdtempSync,writeFileSync,rmSync} from "node:fs";
@@ -14,13 +14,13 @@ describe.skipIf(!connectionString)("PostgreSQL initial migration and privacy con
   const db=new pg.Client({connectionString});
   beforeAll(async()=>{
     await db.connect();
-    expect(await runMigrations(db)).toEqual(["0001_core.sql","0002_audit_consent.sql","0003_oidc_login.sql"]);
+    expect(await runMigrations(db)).toEqual(["0001_core.sql","0002_audit_consent.sql","0003_oidc_login.sql","0004_oidc_members.sql"]);
   });
   afterAll(async()=>{await db.end()});
   it("is idempotent and preserves migration digests",async()=>{
     expect(await runMigrations(db)).toEqual([]);
     const r=await db.query("SELECT name,sha256 FROM tpr_private.schema_migrations");
-    expect(r.rows).toHaveLength(3);
+    expect(r.rows).toHaveLength(4);
     expect(r.rows[0].sha256).toMatch(/^[a-f0-9]{64}$/);
   });
   it("rolls back an attempted rewrite of an already-applied migration",async()=>{
@@ -29,7 +29,7 @@ describe.skipIf(!connectionString)("PostgreSQL initial migration and privacy con
       writeFileSync(path.join(dir,"0001_core.sql"),"-- an incompatible revision");
       await expect(runMigrations(db,dir)).rejects.toThrow("checksum changed");
       const r=await db.query("SELECT count(*)::int AS n FROM tpr_private.schema_migrations");
-      expect(r.rows[0].n).toBe(3);
+      expect(r.rows[0].n).toBe(4);
     }finally{rmSync(dir,{recursive:true,force:true})}
   });
   it("keeps public citations attached to real questions",async()=>{
@@ -116,5 +116,21 @@ describe.skipIf(!connectionString)("PostgreSQL initial migration and privacy con
       subject:"fixture-person"});
     await revokeRegisteredSession(db,issued.id);
     expect(await verifyRegisteredSession(db,issued.token,secret,now)).toBeNull();
+  });
+  it("disables an identity across sessions and rejects later login",async()=>{
+    const now=Math.floor(Date.now()/1000);
+    const secret=randomBytes(32).toString("base64url");
+    const identity={issuer:"https://login.example.gov",subject:"fixture-disabled",
+      issuedAt:now,expiresAt:now+900};
+    const first=await issueRegisteredSession(db,identity,secret,now);
+    const second=await issueRegisteredSession(db,identity,secret,now);
+    await disableMemberIdentity(db,identity.issuer,identity.subject);
+    expect(await verifyRegisteredSession(db,first.token,secret,now)).toBeNull();
+    expect(await verifyRegisteredSession(db,second.token,secret,now)).toBeNull();
+    await expect(issueRegisteredSession(db,identity,secret,now)).rejects.toThrow();
+    const member=await db.query(
+      "SELECT disabled_at FROM tpr_private.oidc_members WHERE issuer=$1 AND subject=$2",
+      [identity.issuer,identity.subject]);
+    expect(member.rows[0].disabled_at).not.toBeNull();
   });
 });
