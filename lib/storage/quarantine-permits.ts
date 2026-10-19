@@ -6,6 +6,7 @@ const ALLOWED_TYPES=new Set([
   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 ]);
 export const MAX_INITIAL_QUARANTINE_BYTES=50*1024*1024;
+export interface QuarantineIdentity { issuer:string; subject:string; }
 type PrivatePermit = {
   v:1;subTag:string;draftId:string;objectKey:string;mime:string;
   bytes:number;issuedAt:number;expiresAt:number;nonce:string;
@@ -24,23 +25,26 @@ function keyMaterial(secret:string):Buffer {
 function sign(input:string,key:Buffer):Buffer {
   return createHmac("sha256",key).update(input).digest();
 }
-function subjectTag(subject:string,key:Buffer):string {
-  return createHmac("sha256",key).update("subject-v1:").update(subject).digest("hex").slice(0,32);
+function subjectTag(identity:QuarantineIdentity,key:Buffer):string {
+  return createHmac("sha256",key).update("identity-v2:")
+    .update(identity.issuer).update(Buffer.from([0])).update(identity.subject).digest("hex").slice(0,32);
 }
 const idRe=/^[A-Za-z0-9_-]{3,128}$/;
 export function issueQuarantinePermit(
-  request:{subject:string;ownerSubject:string;draftId:string;mime:string;bytes:number},
+  request:QuarantineIdentity & {ownerSubject:string;ownerIssuer:string;draftId:string;mime:string;bytes:number},
   secret:string,
   now=Math.floor(Date.now()/1000)
 ):UploadPermit {
   const key=keyMaterial(secret);
   if(typeof request.subject!=="string" || !request.subject ||
      request.subject!==request.ownerSubject || request.subject.length>255 ||
+     typeof request.issuer!=="string" || !request.issuer.startsWith("https://") ||
+     request.issuer!==request.ownerIssuer ||
      typeof request.draftId!=="string" || !idRe.test(request.draftId) ||
      !ALLOWED_TYPES.has(request.mime) || !Number.isSafeInteger(request.bytes) ||
      request.bytes<1 || request.bytes>MAX_INITIAL_QUARANTINE_BYTES)
     throw Error("Quarantine upload not authorized");
-  const subTag=subjectTag(request.subject,key);
+  const subTag=subjectTag(request,key);
   const objectKey=`private/quarantine/v1/${subTag}/${randomUUID()}`;
   const item:PrivatePermit={v:1,subTag,draftId:request.draftId,objectKey,
     mime:request.mime,bytes:request.bytes,issuedAt:now,expiresAt:now+300,
@@ -51,14 +55,17 @@ export function issueQuarantinePermit(
 }
 export function validateQuarantinePermit(
   token:unknown,
-  verifiedSubject:string,
+  verifiedIdentity:QuarantineIdentity,
   secret:string,
   now=Math.floor(Date.now()/1000)
 ):Omit<PrivatePermit,"subTag">|null {
   const key=keyMaterial(secret);
   if(typeof token!=="string" || token.length>1800 ||
      !/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(token) ||
-     !verifiedSubject || verifiedSubject.length>255)return null;
+     !verifiedIdentity || typeof verifiedIdentity.subject!=="string" ||
+     !verifiedIdentity.subject || verifiedIdentity.subject.length>255 ||
+     typeof verifiedIdentity.issuer!=="string" ||
+     !verifiedIdentity.issuer.startsWith("https://"))return null;
   const [body,signature]=token.split(".");
   const received=Buffer.from(signature,"base64url");
   const expected=sign(body,key);
@@ -73,7 +80,7 @@ export function validateQuarantinePermit(
        !idRe.test(p.draftId) || !ALLOWED_TYPES.has(p.mime) ||
        !Number.isSafeInteger(p.bytes) || p.bytes<1 ||
        p.bytes>MAX_INITIAL_QUARANTINE_BYTES ||
-       p.subTag!==subjectTag(verifiedSubject,key) ||
+       p.subTag!==subjectTag(verifiedIdentity,key) ||
        !new RegExp("^private/quarantine/v1/"+p.subTag+"/[0-9a-f-]{36}$","i").test(p.objectKey) ||
        !/^[0-9a-f-]{36}$/i.test(p.nonce) ||
        Object.keys(p).sort().join(",")!=="bytes,draftId,expiresAt,issuedAt,mime,nonce,objectKey,subTag,v")
@@ -84,8 +91,11 @@ export function validateQuarantinePermit(
   }catch{return null;}
 }
 /** Private downloads are authorized against server-owned owner metadata. */
-export function mayReadQuarantine(subject:string|null,storedOwner:string,objectKey:string):boolean {
-  return typeof subject==="string" && subject.trim().length>0 && subject===storedOwner &&
+export function mayReadQuarantine(identity:QuarantineIdentity|null,
+  storedOwner:QuarantineIdentity,objectKey:string):boolean {
+  return !!identity && !!storedOwner && typeof identity.subject==="string" &&
+    identity.subject.trim().length>0 && identity.subject===storedOwner.subject &&
+    identity.issuer===storedOwner.issuer &&
     /^private\/quarantine\/v1\/[0-9a-f]{32}\/[0-9a-f-]{36}$/i.test(objectKey);
 }
 
