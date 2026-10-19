@@ -1,6 +1,6 @@
 # TPR-09 private object quarantine — initial capability contract
 
-**Current status:** signed, bounded capability tokens and a database-backed one-time intent ledger with owner-draft checks; no Backblaze B2 integration, bucket, upload endpoint, malware scanner or production encryption attestation exists.
+**Current status:** signed, bounded capability tokens, a database-backed one-time intent ledger, and an isolated B2 Native API v4 private upload transport are implemented with synthetic tests. No real bucket, credential, upload endpoint, malware scanner or production encryption attestation exists.
 
 ## Storage ownership and privacy
 
@@ -23,3 +23,7 @@
 - Capture applicable E2EESA control-level evidence; obtain review prior to real confidential submissions.
 
 These steps are tracked under TPR-09, 10, 28–32 and 47–52. **Do not enable uploads or call TPR-09 operationally complete on the strength of this library alone.**
+
+## B2 transport evidence and limits
+
+The server-only uploader verifies a bucket-restricted key, `allPrivate` bucket mode, SSE-B2 AES256 settings, a provider-owned HTTPS upload host, exact object key/checksum/length receipt and the 50 MiB item ceiling. It returns file ID and SHA-256 metadata, never a public URL. This follows Backblaze's [authorization](https://www.backblaze.com/apidocs/b2-authorize-account), [bucket listing](https://www.backblaze.com/apidocs/b2-list-buckets), [upload URL](https://www.backblaze.com/apidocs/b2-get-upload-url) and [file upload](https://www.backblaze.com/apidocs/b2-upload-file) contracts checked 2026-10-19. The transport is not wired to a live credential or user endpoint; durable aggregate spending caps, malware scanning and ownership binding remain mandatory before enabling uploads.
