@@ -1,6 +1,6 @@
 # TPR-09 private object quarantine — initial capability contract
 
-**Current status:** signed, bounded capability tokens, a database-backed one-time intent ledger, and an isolated B2 Native API v4 private upload transport are implemented with synthetic tests. No real bucket, credential, upload endpoint, malware scanner or production encryption attestation exists.
+**Current status:** signed, bounded capability tokens, a database-backed one-time intent ledger, and isolated B2 Native API v4 private upload/download transports are implemented with synthetic tests. No real bucket, credential, upload endpoint, malware scanner or production encryption attestation exists.
 
 ## Storage ownership and privacy
 
@@ -27,3 +27,5 @@ These steps are tracked under TPR-09, 10, 28–32 and 47–52. **Do not enable u
 ## B2 transport evidence and limits
 
 The server-only uploader verifies a bucket-restricted key, `allPrivate` bucket mode, SSE-B2 AES256 settings, a provider-owned HTTPS upload host, exact object key/checksum/length receipt and the 50 MiB item ceiling. It returns file ID and SHA-256 metadata, never a public URL. This follows Backblaze's [authorization](https://www.backblaze.com/apidocs/b2-authorize-account), [bucket listing](https://www.backblaze.com/apidocs/b2-list-buckets), [upload URL](https://www.backblaze.com/apidocs/b2-get-upload-url) and [file upload](https://www.backblaze.com/apidocs/b2-upload-file) contracts checked 2026-10-19. The transport is not wired to a live credential or user endpoint; durable aggregate spending caps, malware scanning and ownership binding remain mandatory before enabling uploads.
+
+The private downloader additionally requires a server-owned file ID, key, SHA-1 and byte count; it verifies provider file headers and the streamed body digest under the same bucket/privacy/key restrictions. It follows Backblaze's [download-by-ID](https://www.backblaze.com/apidocs/b2-download-file-by-id) contract checked 2026-10-19. No direct browser download URL is produced. Durable ownership lookup and authorization remain the caller's responsibility until the private endpoint is integrated.

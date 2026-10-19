@@ -55,23 +55,12 @@ function request(fetcher:typeof fetch,url:string,init:RequestInit):Promise<Respo
   return fetcher(url,{...init,redirect:"error",cache:"no-store",credentials:"omit",
     signal:AbortSignal.timeout(10000)});
 }
-/**
- * Server-only B2 Native API v4 uploader. It returns metadata, never a public URL.
- * The caller must first verify the session, claim a one-time intent, enforce
- * durable spend limits, and scan bytes before making any object public.
- */
-export function createB2PrivateUploader(config:B2PrivateConfig,fetcher:typeof fetch=fetch) {
+/** Validate key scope, bucket privacy and server-side encryption on every operation. */
+export async function authorizePrivateBucket(config:B2PrivateConfig,fetcher:typeof fetch,
+  capability:"writeFiles"|"readFiles") {
   if(!config.applicationKeyId || !config.applicationKey ||
      !/^[A-Za-z0-9_-]{6,128}$/.test(config.bucketId))
     throw new PrivateStorageError();
-  return async function uploadPrivate(objectKey:string,bytes:Uint8Array,mime:string):
-    Promise<PrivateUploadReceipt> {
-    if(!keyPattern.test(objectKey) || !(bytes instanceof Uint8Array) ||
-       bytes.byteLength<1 || bytes.byteLength>MAX_INITIAL_QUARANTINE_BYTES ||
-       !/^(application\/pdf|text\/plain|image\/(png|jpeg))$/.test(mime))
-      throw new PrivateStorageError();
-    const sha1=createHash("sha1").update(bytes).digest("hex");
-    const sha256=createHash("sha256").update(bytes).digest("hex");
     const basic=Buffer.from(config.applicationKeyId+":"+config.applicationKey).toString("base64");
     const auth=await boundedJson(await request(fetcher,
       "https://api.backblazeb2.com/b2api/v4/b2_authorize_account",
@@ -81,7 +70,7 @@ export function createB2PrivateUploader(config:B2PrivateConfig,fetcher:typeof fe
     const capabilities=allowed.capabilities;
     const buckets=allowed.buckets;
     if(!Array.isArray(capabilities) ||
-       !["writeFiles","listBuckets","readBucketEncryption"].every(x=>capabilities.includes(x)) ||
+       ![capability,"listBuckets","readBucketEncryption"].every(x=>capabilities.includes(x)) ||
        !Array.isArray(buckets) || buckets.length!==1 ||
        object(buckets[0]).id!==config.bucketId || allowed.namePrefix!==prefix)
       throw new PrivateStorageError();
@@ -101,6 +90,26 @@ export function createB2PrivateUploader(config:B2PrivateConfig,fetcher:typeof fe
        encryption.isClientAuthorizedToRead!==true ||
        encryptionValue.mode!=="SSE-B2" || encryptionValue.algorithm!=="AES256")
       throw new PrivateStorageError();
+    return {api,token,storage};
+}
+/**
+ * Server-only B2 Native API v4 uploader. It returns metadata, never a public URL.
+ * The caller must first verify the session, claim a one-time intent, enforce
+ * durable spend limits, and scan bytes before making any object public.
+ */
+export function createB2PrivateUploader(config:B2PrivateConfig,fetcher:typeof fetch=fetch) {
+  if(!config.applicationKeyId || !config.applicationKey ||
+     !/^[A-Za-z0-9_-]{6,128}$/.test(config.bucketId))
+    throw new PrivateStorageError();
+  return async function uploadPrivate(objectKey:string,bytes:Uint8Array,mime:string):
+    Promise<PrivateUploadReceipt> {
+    if(!keyPattern.test(objectKey) || !(bytes instanceof Uint8Array) ||
+       bytes.byteLength<1 || bytes.byteLength>MAX_INITIAL_QUARANTINE_BYTES ||
+       !/^(application\/pdf|text\/plain|image\/(png|jpeg))$/.test(mime))
+      throw new PrivateStorageError();
+    const sha1=createHash("sha1").update(bytes).digest("hex");
+    const sha256=createHash("sha256").update(bytes).digest("hex");
+    const {api,token}=await authorizePrivateBucket(config,fetcher,"writeFiles");
     const uploadUrl=new URL("/b2api/v4/b2_get_upload_url",api);
     uploadUrl.searchParams.set("bucketId",config.bucketId);
     const target=await boundedJson(await request(fetcher,uploadUrl.href,
