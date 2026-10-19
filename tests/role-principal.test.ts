@@ -20,7 +20,7 @@ describe("server-owned role loading",()=>{
   it("uses stored grants only, inside a scoped private transaction",async()=>{
     const {pool,statements,release}=mockPool([{role:"requester",event_action:"granted"}]);
     const principal=await withRolePrincipal(pool,session,async (_db,p)=>p);
-    expect(principal).toEqual({subject:"person-A",roles:["requester"]});
+    expect(principal).toEqual({issuer:session.issuer,subject:"person-A",roles:["requester"]});
     expect(statements).toEqual(["BEGIN","SELECT set_config('tpr.subject',$1,true)",
       "SELECT set_config('tpr.issuer',$1,true)",expect.stringContaining("SELECT role,event_action"),"COMMIT"]);
     expect(release).toHaveBeenCalledOnce();
@@ -33,8 +33,8 @@ describe("server-owned role loading",()=>{
   it("denies all foreign private object actions for every application role",()=>{
     for(const role of roles)for(const kind of ["request_draft","private_evidence","consent_grant"] as const)
       for(const action of ["read","create","update","delete","review","publish","manage","grant_role"] as const) {
-        const p:Principal={subject:"person-B",roles:[role]};
-        expect(authorize(p,action,{kind,owner:"person-A"})).toBe(false);
+        const p:Principal={issuer:session.issuer,subject:"person-B",roles:[role]};
+        expect(authorize(p,action,{kind,owner:"person-A",ownerIssuer:session.issuer})).toBe(false);
       }
   });
 });

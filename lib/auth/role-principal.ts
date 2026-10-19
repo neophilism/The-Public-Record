@@ -20,6 +20,6 @@ export async function withRolePrincipal<T>(pool:Pick<Pool,"connect">,session:Val
         throw new Error("Invalid stored role");
       active.push(row.role as Role);
     }
-    return fn(client,{subject:session.subject,roles:active});
+    return fn(client,{issuer:session.issuer,subject:session.subject,roles:active});
   });
 }
