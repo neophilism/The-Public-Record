@@ -13,13 +13,13 @@ describe.skipIf(!connectionString)("PostgreSQL initial migration and privacy con
   const db=new pg.Client({connectionString});
   beforeAll(async()=>{
     await db.connect();
-    expect(await runMigrations(db)).toEqual(["0001_core.sql","0002_audit_consent.sql","0005_quarantine_permit_uses.sql"]);
+    expect(await runMigrations(db)).toEqual(["0001_core.sql","0002_audit_consent.sql","0005_quarantine_permit_uses.sql","0006_quarantine_issuer.sql"]);
   });
   afterAll(async()=>{await db.end()});
   it("is idempotent and preserves migration digests",async()=>{
     expect(await runMigrations(db)).toEqual([]);
     const r=await db.query("SELECT name,sha256 FROM tpr_private.schema_migrations");
-    expect(r.rows).toHaveLength(3);
+    expect(r.rows).toHaveLength(4);
     expect(r.rows[0].sha256).toMatch(/^[a-f0-9]{64}$/);
   });
   it("rolls back an attempted rewrite of an already-applied migration",async()=>{
@@ -28,7 +28,7 @@ describe.skipIf(!connectionString)("PostgreSQL initial migration and privacy con
       writeFileSync(path.join(dir,"0001_core.sql"),"-- an incompatible revision");
       await expect(runMigrations(db,dir)).rejects.toThrow("checksum changed");
       const r=await db.query("SELECT count(*)::int AS n FROM tpr_private.schema_migrations");
-      expect(r.rows[0].n).toBe(3);
+      expect(r.rows[0].n).toBe(4);
     }finally{rmSync(dir,{recursive:true,force:true})}
   });
   it("keeps public citations attached to real questions",async()=>{
@@ -96,14 +96,15 @@ describe.skipIf(!connectionString)("PostgreSQL initial migration and privacy con
   });
   it("claims an owned quarantine upload once and denies cross-owner claims",async()=>{
     const secret=randomBytes(32).toString("base64url");
-    const permit=issueQuarantinePermit({subject:"subject-A",ownerSubject:"subject-A",
+    const permit=issueQuarantinePermit({issuer:"https://identity.example.gov",subject:"subject-A",
+      ownerSubject:"subject-A",ownerIssuer:"https://identity.example.gov",
       draftId:"fixture-draft",mime:"application/pdf",bytes:1024},secret);
-    const first=await claimQuarantineIntent(db,permit.token,"subject-A",secret);
+    const first=await claimQuarantineIntent(db,permit.token,{issuer:"https://identity.example.gov",subject:"subject-A"},secret);
     expect(first).toMatchObject({draftId:"fixture-draft",bytes:1024});
     expect(await claimQuarantineIntent(db,permit.token,"subject-A",secret)).toBeNull();
-    expect(await claimQuarantineIntent(db,permit.token,"subject-B",secret)).toBeNull();
+    expect(await claimQuarantineIntent(db,permit.token,{issuer:"https://identity.example.gov",subject:"subject-B"},secret)).toBeNull();
     const missing=issueQuarantinePermit({subject:"subject-A",ownerSubject:"subject-A",
       draftId:"missing-draft",mime:"application/pdf",bytes:1024},secret);
-    expect(await claimQuarantineIntent(db,missing.token,"subject-A",secret)).toBeNull();
+    expect(await claimQuarantineIntent(db,missing.token,{issuer:"https://identity.example.gov",subject:"subject-A"},secret)).toBeNull();
   });
 });
