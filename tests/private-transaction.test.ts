@@ -2,8 +2,9 @@ import {describe,it,expect,vi} from "vitest";
 import type {Pool,PoolClient} from "pg";
 import {withPrivateSubject} from "../lib/auth/private-transaction";
 
-const session=(subject:string,expiresAt=Math.floor(Date.now()/1000)+100)=>
- ({subject,issuer:"https://identity.example.gov",expiresAt});
+const now=Math.floor(Date.now()/1000);
+const session=(subject:string,expiresAt=now+100)=>
+ ({id:"a".repeat(22),subject,issuer:"https://identity.example.gov",issuedAt:now,expiresAt});
 function mockPool() {
   const statements:{sql:string;args?:unknown[]}[]=[];
   const release=vi.fn();
@@ -23,9 +24,11 @@ describe("database subject context",()=>{
     expect(output).toBe(12);
     expect(statements.map(x=>x.sql)).toEqual([
       "BEGIN","SELECT set_config('tpr.subject',$1,true)",
+      "SELECT set_config('tpr.issuer',$1,true)",
       "SELECT 'only domain queries here'","COMMIT"
     ]);
     expect(statements[1].args).toEqual(["person-123"]);
+    expect(statements[2].args).toEqual(["https://identity.example.gov"]);
     expect(release).toHaveBeenCalledOnce();
   });
   it("does not accept arbitrary raw request subjects or expired sessions",async()=>{
@@ -38,7 +41,8 @@ describe("database subject context",()=>{
     const {pool,statements,release}=mockPool();
     await expect(withPrivateSubject(pool,session("person-123"),async()=>{throw Error("query denied")}))
       .rejects.toThrow("query denied");
-    expect(statements.map(s=>s.sql)).toEqual(["BEGIN","SELECT set_config('tpr.subject',$1,true)","ROLLBACK"]);
+    expect(statements.map(s=>s.sql)).toEqual(["BEGIN","SELECT set_config('tpr.subject',$1,true)",
+      "SELECT set_config('tpr.issuer',$1,true)","ROLLBACK"]);
     expect(release).toHaveBeenCalledOnce();
   });
 });
