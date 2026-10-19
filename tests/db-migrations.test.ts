@@ -131,4 +131,57 @@ describe.skipIf(!connectionString)("PostgreSQL initial migration and privacy con
       await db.query("RESET tpr.issuer");
     }
   });
+  it("enforces issuer and subject isolation across all private row families",async()=>{
+    await db.query(`INSERT INTO tpr_private.request_events
+      (id,draft_id,owner_subject,owner_issuer,from_state,to_state,source)
+      VALUES ($1,$2,$3,$4,$5,$6,$7)`,
+      ["fixture-event","fixture-draft","subject-A","https://identity.example.gov",
+       "draft","submitted_unverified","requester_report"]);
+    await db.query(`INSERT INTO tpr_private.publication_grants
+      (id,quarantine_object_id,owner_subject,owner_issuer,grant_status)
+      VALUES ($1,$2,$3,$4,$5)`,
+      ["fixture-grant","private-fixture","subject-A","https://identity.example.gov","granted"]);
+    await db.query(`INSERT INTO tpr_private.retention_requests
+      (owner_subject,owner_issuer,target_type,target_id)
+      VALUES ($1,$2,$3,$4)`,
+      ["subject-A","https://identity.example.gov","draft","fixture-draft"]);
+    await db.query("CREATE ROLE tpr_ci_matrix NOLOGIN");
+    await db.query("GRANT USAGE ON SCHEMA tpr_private TO tpr_ci_matrix");
+    for(const table of ["request_drafts","request_events","quarantine_objects",
+      "publication_grants","audit_events","consent_events","retention_requests"])
+      await db.query("GRANT SELECT ON tpr_private."+table+" TO tpr_ci_matrix");
+    await db.query("GRANT INSERT,UPDATE ON tpr_private.request_drafts TO tpr_ci_matrix");
+    await db.query("SET ROLE tpr_ci_matrix");
+    try {
+      await db.query("SET tpr.subject = 'subject-A'");
+      await db.query("SET tpr.issuer = 'https://identity.example.gov'");
+      for(const table of ["request_drafts","request_events","quarantine_objects",
+        "publication_grants","audit_events","consent_events","retention_requests"]) {
+        const visible=await db.query("SELECT count(*)::int AS n FROM tpr_private."+table);
+        expect(visible.rows[0].n).toBeGreaterThan(0);
+      }
+      await db.query("SET tpr.issuer = 'https://other.example.gov'");
+      for(const table of ["request_events","quarantine_objects","publication_grants",
+        "audit_events","consent_events","retention_requests"]) {
+        const hidden=await db.query("SELECT count(*)::int AS n FROM tpr_private."+table);
+        expect(hidden.rows[0].n).toBe(0);
+      }
+      const other=await db.query("SELECT id FROM tpr_private.request_drafts");
+      expect(other.rows.map(x=>x.id)).toEqual(["other-issuer-draft"]);
+      await db.query("SET tpr.issuer = 'https://identity.example.gov'");
+      await expect(db.query(`INSERT INTO tpr_private.request_drafts
+        (id,owner_subject,owner_issuer,draft_body)
+        VALUES ($1,$2,$3,$4)`,
+        ["forged-issuer","subject-A","https://other.example.gov","No access"]))
+        .rejects.toThrow();
+      const update=await db.query(`UPDATE tpr_private.request_drafts
+        SET draft_body='tampered' WHERE id='other-issuer-draft'`);
+      expect(update.rowCount).toBe(0);
+    } finally {
+      await db.query("RESET ROLE");
+      await db.query("RESET tpr.subject");
+      await db.query("RESET tpr.issuer");
+    }
+  });
+
 });
