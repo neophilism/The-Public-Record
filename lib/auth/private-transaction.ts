@@ -23,6 +23,7 @@ export async function withPrivateSubject<T>(
   try{
     await client.query("BEGIN");started=true;
     await client.query("SELECT set_config('tpr.subject',$1,true)",[session.subject]);
+    await client.query("SELECT set_config('tpr.issuer',$1,true)",[session.issuer]);
     const result=await fn(client);
     await client.query("COMMIT");
     return result;

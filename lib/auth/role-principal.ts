@@ -10,7 +10,6 @@ import type {ValidSession} from "./session";
 export async function withRolePrincipal<T>(pool:Pick<Pool,"connect">,session:ValidSession,
   fn:(client:PoolClient,principal:Principal)=>Promise<T>):Promise<T> {
   return withPrivateSubject(pool,session,async client=>{
-    await client.query("SELECT set_config('tpr.issuer',$1,true)",[session.issuer]);
     const result=await client.query(`SELECT role,event_action FROM (
       SELECT DISTINCT ON (role) role,event_action FROM tpr_private.role_grant_events
       WHERE issuer=$1 AND subject=$2 ORDER BY role,id DESC

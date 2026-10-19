@@ -23,9 +23,11 @@ describe("database subject context",()=>{
     expect(output).toBe(12);
     expect(statements.map(x=>x.sql)).toEqual([
       "BEGIN","SELECT set_config('tpr.subject',$1,true)",
+      "SELECT set_config('tpr.issuer',$1,true)",
       "SELECT 'only domain queries here'","COMMIT"
     ]);
     expect(statements[1].args).toEqual(["person-123"]);
+    expect(statements[2].args).toEqual(["https://identity.example.gov"]);
     expect(release).toHaveBeenCalledOnce();
   });
   it("does not accept arbitrary raw request subjects or expired sessions",async()=>{
@@ -38,7 +40,8 @@ describe("database subject context",()=>{
     const {pool,statements,release}=mockPool();
     await expect(withPrivateSubject(pool,session("person-123"),async()=>{throw Error("query denied")}))
       .rejects.toThrow("query denied");
-    expect(statements.map(s=>s.sql)).toEqual(["BEGIN","SELECT set_config('tpr.subject',$1,true)","ROLLBACK"]);
+    expect(statements.map(s=>s.sql)).toEqual(["BEGIN","SELECT set_config('tpr.subject',$1,true)",
+      "SELECT set_config('tpr.issuer',$1,true)","ROLLBACK"]);
     expect(release).toHaveBeenCalledOnce();
   });
 });
