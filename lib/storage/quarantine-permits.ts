@@ -27,7 +27,7 @@ function sign(input:string,key:Buffer):Buffer {
 }
 function subjectTag(identity:QuarantineIdentity,key:Buffer):string {
   return createHmac("sha256",key).update("identity-v2:")
-    .update(identity.issuer).update("\\0").update(identity.subject).digest("hex").slice(0,32);
+    .update(identity.issuer).update(Buffer.from([0])).update(identity.subject).digest("hex").slice(0,32);
 }
 const idRe=/^[A-Za-z0-9_-]{3,128}$/;
 export function issueQuarantinePermit(

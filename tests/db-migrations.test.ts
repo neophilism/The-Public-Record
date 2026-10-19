@@ -101,10 +101,10 @@ describe.skipIf(!connectionString)("PostgreSQL initial migration and privacy con
       draftId:"fixture-draft",mime:"application/pdf",bytes:1024},secret);
     const first=await claimQuarantineIntent(db,permit.token,{issuer:"https://identity.example.gov",subject:"subject-A"},secret);
     expect(first).toMatchObject({draftId:"fixture-draft",bytes:1024});
-    expect(await claimQuarantineIntent(db,permit.token,"subject-A",secret)).toBeNull();
+    expect(await claimQuarantineIntent(db,permit.token,{issuer:"https://identity.example.gov",subject:"subject-A"},secret)).toBeNull();
     expect(await claimQuarantineIntent(db,permit.token,{issuer:"https://identity.example.gov",subject:"subject-B"},secret)).toBeNull();
-    const missing=issueQuarantinePermit({subject:"subject-A",ownerSubject:"subject-A",
-      draftId:"missing-draft",mime:"application/pdf",bytes:1024},secret);
+    const missing=issueQuarantinePermit({issuer:"https://identity.example.gov",subject:"subject-A",
+      ownerSubject:"subject-A",ownerIssuer:"https://identity.example.gov",draftId:"missing-draft",mime:"application/pdf",bytes:1024},secret);
     expect(await claimQuarantineIntent(db,missing.token,{issuer:"https://identity.example.gov",subject:"subject-A"},secret)).toBeNull();
   });
 });
