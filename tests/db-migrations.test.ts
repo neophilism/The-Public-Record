@@ -46,6 +46,12 @@ describe.skipIf(!connectionString)("PostgreSQL initial migration and privacy con
       VALUES($1,$2,$3,$4,$5,$6,$7)`,
       ["bad-event","fixture-draft","subject-B","https://identity.example.gov","draft","submitted_unverified","requester_report"])
     ).rejects.toThrow();
+    await expect(db.query(`INSERT INTO tpr_private.request_events
+      (id,draft_id,owner_subject,owner_issuer,from_state,to_state,source)
+      VALUES($1,$2,$3,$4,$5,$6,$7)`,
+      ["bad-issuer-event","fixture-draft","subject-A","https://other.example.gov",
+       "draft","submitted_unverified","requester_report"])
+    ).rejects.toThrow();
   });
   it("applies owner-only row-level visibility to the runtime role",async()=>{
     await db.query("CREATE ROLE tpr_ci_reader NOLOGIN");
