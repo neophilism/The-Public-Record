@@ -2,8 +2,9 @@ import {describe,it,expect,vi} from "vitest";
 import type {Pool,PoolClient} from "pg";
 import {withPrivateSubject} from "../lib/auth/private-transaction";
 
-const session=(subject:string,expiresAt=Math.floor(Date.now()/1000)+100)=>
- ({subject,issuer:"https://identity.example.gov",expiresAt});
+const now=Math.floor(Date.now()/1000);
+const session=(subject:string,expiresAt=now+100)=>
+ ({id:"a".repeat(22),subject,issuer:"https://identity.example.gov",issuedAt:now,expiresAt});
 function mockPool() {
   const statements:{sql:string;args?:unknown[]}[]=[];
   const release=vi.fn();

@@ -4,8 +4,9 @@ import {withRolePrincipal} from "../lib/auth/role-principal";
 import {authorize,roles,type Principal} from "../lib/auth/authorization";
 import type {ValidSession} from "../lib/auth/session";
 
-const session:ValidSession={id:"test-id",issuer:"https://identity.example.gov",
-  subject:"person-A",issuedAt:Math.floor(Date.now()/1000),expiresAt:Math.floor(Date.now()/1000)+900};
+const now=Math.floor(Date.now()/1000);
+const session:ValidSession={id:"a".repeat(22),issuer:"https://identity.example.gov",
+  subject:"person-A",issuedAt:now,expiresAt:now+900};
 function mockPool(rows:{role:string;event_action:string}[]) {
   const statements:string[]=[];
   const release=vi.fn();
