@@ -40,3 +40,5 @@ Three isolated native Node mutation/cancellation scenarios passed against the ac
 
 Transport connection failures now produce the fixed PrivateStorageError rather than forwarding raw provider/header diagnostics. Unsuccessful JSON responses are cancelled before rejection. No retry of an ambiguous upload is introduced.
 
+The permit issuer and upload adapter now share the same MIME predicate, including the already-permitted DOCX and XLSX types. A transport MIME allowlist is not content validation: Office archives still require the future isolated type/malware/archive-bomb pipeline before upload endpoints can be enabled.
+

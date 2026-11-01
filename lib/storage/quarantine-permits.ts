@@ -6,6 +6,9 @@ const ALLOWED_TYPES=new Set([
   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 ]);
 export const MAX_INITIAL_QUARANTINE_BYTES=50*1024*1024;
+export function isAllowedQuarantineMime(value:unknown):value is string {
+  return typeof value==="string"&&ALLOWED_TYPES.has(value);
+}
 export interface QuarantineIdentity { issuer:string; subject:string; }
 type PrivatePermit = {
   v:1;subTag:string;draftId:string;objectKey:string;mime:string;
@@ -41,7 +44,7 @@ export function issueQuarantinePermit(
      typeof request.issuer!=="string" || !request.issuer.startsWith("https://") ||
      request.issuer!==request.ownerIssuer ||
      typeof request.draftId!=="string" || !idRe.test(request.draftId) ||
-     !ALLOWED_TYPES.has(request.mime) || !Number.isSafeInteger(request.bytes) ||
+     !isAllowedQuarantineMime(request.mime) || !Number.isSafeInteger(request.bytes) ||
      request.bytes<1 || request.bytes>MAX_INITIAL_QUARANTINE_BYTES)
     throw Error("Quarantine upload not authorized");
   const subTag=subjectTag(request,key);
@@ -77,7 +80,7 @@ export function validateQuarantinePermit(
     if(p.v!==1 || !Number.isSafeInteger(p.issuedAt) ||
        !Number.isSafeInteger(p.expiresAt) || p.issuedAt>now+30 ||
        p.expiresAt<=now || p.expiresAt-p.issuedAt!==300 ||
-       !idRe.test(p.draftId) || !ALLOWED_TYPES.has(p.mime) ||
+       !idRe.test(p.draftId) || !isAllowedQuarantineMime(p.mime) ||
        !Number.isSafeInteger(p.bytes) || p.bytes<1 ||
        p.bytes>MAX_INITIAL_QUARANTINE_BYTES ||
        p.subTag!==subjectTag(verifiedIdentity,key) ||
@@ -105,3 +108,4 @@ export interface PrivateQuarantineAdapter {
   readPrivateObject(key:string):Promise<Uint8Array>;
   deletePrivateObject(key:string):Promise<void>;
 }
+

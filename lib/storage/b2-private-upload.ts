@@ -1,5 +1,5 @@
 import {createHash} from "node:crypto";
-import {MAX_INITIAL_QUARANTINE_BYTES} from "./quarantine-permits";
+import {MAX_INITIAL_QUARANTINE_BYTES,isAllowedQuarantineMime} from "./quarantine-permits";
 
 export interface B2PrivateConfig {
   applicationKeyId:string;
@@ -111,7 +111,7 @@ export function createB2PrivateUploader(config:B2PrivateConfig,fetcher:typeof fe
     Promise<PrivateUploadReceipt> {
     if(!keyPattern.test(objectKey) || !(bytes instanceof Uint8Array) ||
        bytes.byteLength<1 || bytes.byteLength>MAX_INITIAL_QUARANTINE_BYTES ||
-       !/^(application\/pdf|text\/plain|image\/(png|jpeg))$/.test(mime))
+       !isAllowedQuarantineMime(mime))
       throw new PrivateStorageError();
     const payload=Uint8Array.from(bytes);
     const sha1=createHash("sha1").update(payload).digest("hex");

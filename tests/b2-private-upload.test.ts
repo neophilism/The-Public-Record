@@ -39,6 +39,13 @@ function responses(options:{bucketType?:string;uploadUrl?:string;receiptSha1?:st
   return {fetcher:fetcher as typeof fetch,calls};
 }
 describe("private B2 upload transport",()=>{
+  it("accepts the same bounded Office MIME types as the issued quarantine permit",async()=>{
+    for(const mime of ["application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"]){
+      const {fetcher}=responses();
+      await expect(createB2PrivateUploader(config,fetcher)(objectKey,bytes,mime)).resolves.toMatchObject({bytes:4});
+    }
+  });
   it("does not expose raw provider connection diagnostics",async()=>{
     const fetcher=vi.fn(async()=>{throw Error("synthetic secret connection details");}) as typeof fetch;
     await expect(createB2PrivateUploader(config,fetcher)(objectKey,bytes,"application/pdf"))
