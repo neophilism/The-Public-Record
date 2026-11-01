@@ -16,7 +16,7 @@
 
 - Create a distinct *private* B2 bucket (or isolated scope with equivalent access constraints) through an authorized workspace, no public bucket grants and no cross-project credentials.
 - Provision least-privilege application keys through Render secret management; never commit or print them.
-- Implement true private B2 adapter and usage/fee ceilings, retry/idempotency and object lifecycle/versioning.
+- Wire the implemented private B2 transports to durable ownership, aggregate byte/operation quotas and an explicitly configured cost stop. Retain file/version IDs for verified lifecycle operations, and reconcile ambiguous provider writes before any retry.
 - Apply the one-time intent ledger migration to a scoped database role, then persist scanned status, hash and ownership; connect it to a private upload endpoint with audit, revocation and quotas.
 - Implement malware/type-safety pipeline and privacy screening before editorial review; encrypted-at-rest storage and TLS are not claims of end-to-end encryption against server-side workers.
 - Test forged/cross-owner and expired access, wrong MIME/size, unauthorized direct B2 access and backup/restore from a separate runtime database principal.
@@ -41,4 +41,10 @@ Three isolated native Node mutation/cancellation scenarios passed against the ac
 Transport connection failures now produce the fixed PrivateStorageError rather than forwarding raw provider/header diagnostics. Unsuccessful JSON responses are cancelled before rejection. No retry of an ambiguous upload is introduced.
 
 The permit issuer and upload adapter now share the same MIME predicate, including the already-permitted DOCX and XLSX types. A transport MIME allowlist is not content validation: Office archives still require the future isolated type/malware/archive-bomb pipeline before upload endpoints can be enabled.
+
+## Next integration acceptance
+
+The permit-use ledger records intent and reserved bytes; it is not evidence of actual stored-byte usage or provider billing. A durable quota implementation must atomically serialize competing reservations, count unresolved writes conservatively, and release storage allocation only after source-bound deletion/reconciliation evidence. Per-item 50 MiB validation is not an aggregate spend cap.
+
+Before mounting a private endpoint, integrate the issuer-scoped draft ownership and registered-session prerequisites, then test two concurrent reservations at the configured aggregate limit, crash-after-provider-acceptance, unknown-outcome recovery without automatic resend, expired/revoked session denial, and verified deletion accounting. Use synthetic data and injected provider responses until private credentials and operational authority are actually configured. These are remaining acceptance cases, not passing results.
 
