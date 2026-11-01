@@ -43,3 +43,9 @@ The private transaction helper now pins one identity snapshot, rejects inverted/
 
 Seven isolated Node transaction scenarios passed locally against the actual TypeScript helper. Additional Vitest recovery and changing-identity tests are committed for hosted quality CI; no local Vitest, PostgreSQL or live session-registry pass is claimed. No production private route is enabled by these helpers.
 
+## Registered private draft read handler
+
+`createPrivateDraftReader({pool,verifyRegisteredSession})` provides a GET-only handler for composition once TPR-007's durable active-session verifier is present. It rejects missing/duplicate cookies and revoked sessions before opening a private transaction, loads server-owned roles, scopes SQL by both issuer and subject, bounds materialized draft bytes, and repeats object authorization even if a database adapter returns a foreign row. Non-requester admin/operator roles do not gain private read access. All responses use private/no-store headers and fixed, secret-free errors.
+
+Eight isolated native Node scenarios passed for owned reads, cross-owner/provider denial, privilege denial, revoked sessions, database error redaction and consistent pinned identities. Four Vitest HTTP-handler cases are added to hosted CI. No live Next route is mounted, no test verifier is installed in production, and no durable registry or upstream provider behavior is simulated as an integrated success. Mounting remains dependent on the real TPR-007 registered-session implementation.
+
