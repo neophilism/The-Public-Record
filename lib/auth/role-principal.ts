@@ -9,17 +9,20 @@ import type {ValidSession} from "./session";
  */
 export async function withRolePrincipal<T>(pool:Pick<Pool,"connect">,session:ValidSession,
   fn:(client:PoolClient,principal:Principal)=>Promise<T>):Promise<T> {
-  return withPrivateSubject(pool,session,async client=>{
+  const pinned:ValidSession=Object.freeze({issuer:session.issuer,subject:session.subject,
+    id:session.id,issuedAt:session.issuedAt,expiresAt:session.expiresAt});
+  return withPrivateSubject(pool,pinned,async client=>{
     const result=await client.query(`SELECT role,event_action FROM (
       SELECT DISTINCT ON (role) role,event_action FROM tpr_private.role_grant_events
       WHERE issuer=$1 AND subject=$2 ORDER BY role,id DESC
-    ) latest WHERE event_action='granted'`,[session.issuer,session.subject]);
+    ) latest WHERE event_action='granted'`,[pinned.issuer,pinned.subject]);
     const active:Role[]=[];
     for(const row of result.rows) {
       if(typeof row.role!=="string" || !roles.includes(row.role as Role))
         throw new Error("Invalid stored role");
       active.push(row.role as Role);
     }
-    return fn(client,{issuer:session.issuer,subject:session.subject,roles:active});
+    return fn(client,{issuer:pinned.issuer,subject:pinned.subject,roles:active});
   });
 }
+

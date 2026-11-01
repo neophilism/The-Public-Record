@@ -36,3 +36,10 @@ Private row ownership and application object checks are bound to both issuer and
 - Penetration testing, E2EESA profiles, abuse-rate protection and real tenant-separation verification remain required.
 
 **No user-upload feature is enabled by this module alone.**
+
+## November 1 transaction recovery hardening
+
+The private transaction helper now pins one identity snapshot, rejects inverted/negative session lifetimes, preserves the original operation error when rollback fails, and discards connections after failed BEGIN, failed COMMIT or failed rollback. A successful rollback after an ordinary domain failure remains reusable. Server-owned grant lookup and the returned principal use the same pinned issuer/subject as transaction-local RLS context.
+
+Seven isolated Node transaction scenarios passed locally against the actual TypeScript helper. Additional Vitest recovery and changing-identity tests are committed for hosted quality CI; no local Vitest, PostgreSQL or live session-registry pass is claimed. No production private route is enabled by these helpers.
+

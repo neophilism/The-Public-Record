@@ -46,3 +46,32 @@ describe("database subject context",()=>{
     expect(release).toHaveBeenCalledOnce();
   });
 });
+
+describe("private transaction failure recovery",()=>{
+ it("destroys a connection after rollback failure and preserves the original operation error",async()=>{
+   const operationError=Error("operation failed"),rollbackError=Error("rollback failed");
+   const release=vi.fn();
+   const client={query:vi.fn(async(sql:string)=>{if(sql==="ROLLBACK")throw rollbackError;return {rows:[]};}),release};
+   const pool={connect:async()=>client} as unknown as Pick<Pool,"connect">;
+   await expect(withPrivateSubject(pool,session("person-A"),async()=>{throw operationError})).rejects.toBe(operationError);
+   expect(release).toHaveBeenCalledOnce();expect(release).toHaveBeenCalledWith(rollbackError);
+ });
+ it("destroys connections on uncertain BEGIN or COMMIT failures",async()=>{
+   for(const statement of ["BEGIN","COMMIT"]){
+     const error=Error(statement+" failed"),release=vi.fn();
+     const client={query:vi.fn(async(sql:string)=>{if(sql===statement)throw error;return {rows:[]};}),release};
+     const pool={connect:async()=>client} as unknown as Pick<Pool,"connect">;
+     await expect(withPrivateSubject(pool,session("person-A"),async()=>true)).rejects.toBe(error);
+     expect(release).toHaveBeenCalledOnce();expect(release).toHaveBeenCalledWith(error);
+   }
+ });
+ it("rejects inverted and negative session lifetimes before connecting",async()=>{
+   const {pool,statements}=mockPool();
+   for(const invalid of [{...session("person-A"),issuedAt:now+20,expiresAt:now+10},
+     {...session("person-A"),issuedAt:-1}]){
+     await expect(withPrivateSubject(pool,invalid,async()=>true)).rejects.toThrow("Authentication required");
+   }
+   expect(statements).toHaveLength(0);
+ });
+});
+

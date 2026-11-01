@@ -39,3 +39,18 @@ describe("server-owned role loading",()=>{
       }
   });
 });
+
+it("pins one identity for transaction scope, grant lookup and returned principal",async()=>{
+ let reads=0;
+ const changing={...session,get issuer(){return ++reads===1?session.issuer:"https://other.example.gov"}};
+ const statements:{sql:string;args?:unknown[]}[]=[];
+ const client={query:async(sql:string,args?:unknown[])=>{
+  statements.push({sql,args});return {rows:sql.includes("SELECT role,event_action")?[{role:"requester",event_action:"granted"}]:[]};
+ },release:vi.fn()};
+ const pool={connect:async()=>client} as unknown as Pick<Pool,"connect">;
+ const result=await withRolePrincipal(pool,changing,async(_db,p)=>p);
+ expect(reads).toBe(1);expect(result.issuer).toBe(session.issuer);
+ expect(statements[2].args).toEqual([session.issuer]);
+ expect(statements[3].args).toEqual([session.issuer,session.subject]);
+});
+
