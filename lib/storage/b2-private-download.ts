@@ -14,6 +14,7 @@ function expectedDownloadUrl(value:unknown):URL {
 }
 /** Caller must authorize the user against the stored file ID/key/owner first. */
 export function createB2PrivateDownloader(config:B2PrivateConfig,fetcher:typeof fetch=fetch) {
+  config={...config};
   return async function downloadPrivate(fileId:string,objectKey:string,
     expectedSha1:string,expectedBytes:number):Promise<Uint8Array> {
     if(typeof fileId!=="string" || !/^[A-Za-z0-9_-]{5,255}$/.test(fileId) ||
@@ -27,6 +28,7 @@ export function createB2PrivateDownloader(config:B2PrivateConfig,fetcher:typeof 
     url.searchParams.set("fileId",fileId);
     const response=await fetcher(url.href,{method:"GET",redirect:"error",cache:"no-store",
       credentials:"omit",headers:{Authorization:token},signal:AbortSignal.timeout(10000)});
+    try{
     if(!response.ok || !response.body ||
        response.headers.get("x-bz-content-sha1")!==expectedSha1 ||
        response.headers.get("content-length")!==String(expectedBytes) ||
@@ -36,6 +38,8 @@ export function createB2PrivateDownloader(config:B2PrivateConfig,fetcher:typeof 
     try{storedName=decodeURIComponent(response.headers.get("x-bz-file-name")??"");}
     catch{throw new PrivateStorageError();}
     if(storedName!==objectKey)throw new PrivateStorageError();
+    }catch{await response.body?.cancel().catch(()=>undefined);throw new PrivateStorageError();}
+    if(!response.body)throw new PrivateStorageError();
     const chunks:Uint8Array[]=[];
     const sha1=createHash("sha1");
     let total=0;
@@ -44,10 +48,11 @@ export function createB2PrivateDownloader(config:B2PrivateConfig,fetcher:typeof 
       while(true){
         const part=await reader.read();
         if(part.done)break;
-        total+=part.value.byteLength;
+        const chunk=Uint8Array.from(part.value);
+        total+=chunk.byteLength;
         if(total>expectedBytes)throw new PrivateStorageError();
-        sha1.update(part.value);
-        chunks.push(part.value);
+        sha1.update(chunk);
+        chunks.push(chunk);
       }
       if(total!==expectedBytes || sha1.digest("hex")!==expectedSha1)
         throw new PrivateStorageError();
@@ -59,3 +64,4 @@ export function createB2PrivateDownloader(config:B2PrivateConfig,fetcher:typeof 
     finally{reader.releaseLock();}
   };
 }
+

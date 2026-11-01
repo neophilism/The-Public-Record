@@ -61,3 +61,30 @@ describe("private B2 download transport",()=>{
     expect(noCall).not.toHaveBeenCalled();
   });
 });
+
+it("snapshots streamed bytes before a provider reuses its chunk buffer",async()=>{
+ const base=fake(),mutable=Uint8Array.from(bytes);
+ let pulls=0;
+ const fetcher=(async(url:string,init:RequestInit)=>{
+  if(url.includes("b2_download_file_by_id")){
+   const body=new ReadableStream<Uint8Array>({pull(controller){
+    if(pulls++===0)controller.enqueue(mutable);else{mutable.fill(9);controller.close();}
+   }},{highWaterMark:0});
+   return new Response(body,{headers:{"x-bz-content-sha1":sha1,"x-bz-file-name":encodeURIComponent(key),
+    "x-bz-file-id":"file123","content-length":"4"}});
+  }
+  return base.fetcher(url,init);
+ }) as typeof fetch;
+ const result=await createB2PrivateDownloader(config,fetcher)("file123",key,sha1,4);
+ expect(result).toEqual(bytes);expect(mutable).toEqual(new Uint8Array(4).fill(9));
+});
+it("cancels an untrusted response before rejecting file headers",async()=>{
+ const base=fake(),cancel=vi.fn();
+ const fetcher=(async(url:string,init:RequestInit)=>{
+  if(url.includes("b2_download_file_by_id"))return new Response(new ReadableStream({cancel}),{headers:{"x-bz-file-id":"wrong"}});
+  return base.fetcher(url,init);
+ }) as typeof fetch;
+ await expect(createB2PrivateDownloader(config,fetcher)("file123",key,sha1,4)).rejects.toThrow(PrivateStorageError);
+ expect(cancel).toHaveBeenCalledOnce();
+});
+

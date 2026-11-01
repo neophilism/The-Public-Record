@@ -31,3 +31,10 @@ The server-only uploader verifies a bucket-restricted key, `allPrivate` bucket m
 The private downloader additionally requires a server-owned file ID, key, SHA-1 and byte count; it verifies provider file headers and the streamed body digest under the same bucket/privacy/key restrictions. It follows Backblaze's [download-by-ID](https://www.backblaze.com/apidocs/b2-download-file-by-id) contract checked 2026-10-19. No direct browser download URL is produced. Durable ownership lookup and authorization remain the caller's responsibility until the private endpoint is integrated.
 
 The permit and read checks bind both issuer and subject, and the permit-claim ledger applies issuer-and-subject RLS. The existing draft table on this branch still lacks issuer ownership; TPR-08's issuer-scoped draft migration must be integrated before enabling the claim endpoint. No current helper call proves live provider identity or authorizes a browser upload.
+
+## November 1 byte-integrity hardening
+
+Upload configuration and payload bytes are pinned before asynchronous authorization. Upload hashes, length and submitted bytes therefore refer to one snapshot even if the caller later mutates its buffer. Downloads snapshot every streamed chunk before hashing and assembly, preventing a reused provider buffer from changing bytes after verification. Rejected file headers/name encoding cancel the response body before failing.
+
+Three isolated native Node mutation/cancellation scenarios passed against the actual TypeScript adapters. Additional Vitest regressions are committed for current-head hosted quality CI. These fixtures use injected responses, not a live Backblaze bucket. Issuer-scoped ownership, registered-session integration, malware/type screening, aggregate quota/spend persistence and credentialed private-bucket acceptance remain separate unfinished integration work; no upload endpoint is enabled.
+

@@ -58,6 +58,7 @@ function request(fetcher:typeof fetch,url:string,init:RequestInit):Promise<Respo
 /** Validate key scope, bucket privacy and server-side encryption on every operation. */
 export async function authorizePrivateBucket(config:B2PrivateConfig,fetcher:typeof fetch,
   capability:"writeFiles"|"readFiles") {
+  config={...config};
   if(!config.applicationKeyId || !config.applicationKey ||
      !/^[A-Za-z0-9_-]{6,128}$/.test(config.bucketId))
     throw new PrivateStorageError();
@@ -98,6 +99,7 @@ export async function authorizePrivateBucket(config:B2PrivateConfig,fetcher:type
  * durable spend limits, and scan bytes before making any object public.
  */
 export function createB2PrivateUploader(config:B2PrivateConfig,fetcher:typeof fetch=fetch) {
+  config={...config};
   if(!config.applicationKeyId || !config.applicationKey ||
      !/^[A-Za-z0-9_-]{6,128}$/.test(config.bucketId))
     throw new PrivateStorageError();
@@ -107,8 +109,9 @@ export function createB2PrivateUploader(config:B2PrivateConfig,fetcher:typeof fe
        bytes.byteLength<1 || bytes.byteLength>MAX_INITIAL_QUARANTINE_BYTES ||
        !/^(application\/pdf|text\/plain|image\/(png|jpeg))$/.test(mime))
       throw new PrivateStorageError();
-    const sha1=createHash("sha1").update(bytes).digest("hex");
-    const sha256=createHash("sha256").update(bytes).digest("hex");
+    const payload=Uint8Array.from(bytes);
+    const sha1=createHash("sha1").update(payload).digest("hex");
+    const sha256=createHash("sha256").update(payload).digest("hex");
     const {api,token}=await authorizePrivateBucket(config,fetcher,"writeFiles");
     const uploadUrl=new URL("/b2api/v4/b2_get_upload_url",api);
     uploadUrl.searchParams.set("bucketId",config.bucketId);
@@ -123,17 +126,18 @@ export function createB2PrivateUploader(config:B2PrivateConfig,fetcher:typeof fe
       method:"POST",headers:{Authorization:requireToken(target.authorizationToken),
         "X-Bz-File-Name":encodeURIComponent(objectKey),
         "X-Bz-Content-Sha1":sha1,"Content-Type":mime,
-        "Content-Length":String(bytes.byteLength),
+        "Content-Length":String(payload.byteLength),
         "X-Bz-Server-Side-Encryption":"AES256"},
-      body:bytes as unknown as BodyInit}));
+      body:payload as unknown as BodyInit}));
     const fileId=receipt.fileId;
     const sse=object(receipt.serverSideEncryption);
     if(receipt.action!=="upload" || receipt.bucketId!==config.bucketId ||
        receipt.fileName!==objectKey || receipt.contentSha1!==sha1 ||
-       Number(receipt.contentLength)!==bytes.byteLength ||
+       Number(receipt.contentLength)!==payload.byteLength ||
        sse.mode!=="SSE-B2" || sse.algorithm!=="AES256" ||
        typeof fileId!=="string" || !fileId)
       throw new PrivateStorageError();
-    return {fileId,objectKey,bytes:bytes.byteLength,sha256};
+    return {fileId,objectKey,bytes:payload.byteLength,sha256};
   };
 }
+

@@ -66,3 +66,17 @@ describe("private B2 upload transport",()=>{
     expect(noCall).not.toHaveBeenCalled();
   });
 });
+
+it("uploads the same snapshot it hashed despite caller mutation during authorization",async()=>{
+ const base=responses(),mutable=Uint8Array.from(bytes);
+ let uploaded:unknown;
+ const fetcher=(async(url:string,init:RequestInit)=>{
+  if(url.endsWith("b2_authorize_account"))mutable.fill(9);
+  if(url.includes("/b2_upload_file/"))uploaded=init.body;
+  return base.fetcher(url,init);
+ }) as typeof fetch;
+ const receipt=await createB2PrivateUploader(config,fetcher)(objectKey,mutable,"application/pdf");
+ expect(uploaded).toEqual(bytes);expect(mutable).toEqual(new Uint8Array(4).fill(9));
+ expect(receipt.sha256).toBe(createHash("sha256").update(bytes).digest("hex"));
+});
+
