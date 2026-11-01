@@ -6,8 +6,8 @@ This is a **local/CI schema baseline**, not a production database deployment. Th
 
 - `tpr_public` schema: public questions, source citations and verified agency metadata. Public metadata is not automatically validated truth.
 - `tpr_private` schema: draft requests, evidence events, quarantine object references and item-specific publication grants. No private binary is stored directly in SQL.
-- Event and file rows use composite `(id, owner_subject)` foreign-key relationships to prevent accidental cross-owner linking.
-- Row-level security is enabled and forced on user-owned private tables. Policies compare `owner_subject` to `current_setting('tpr.subject',true)`; absent subject yields no rows.
+- Event and file rows use issuer-plus-subject foreign-key relationships to prevent cross-provider or cross-owner linking. Legacy rows without an issuer are inaccessible to runtime roles pending reviewed backfill.
+- Row-level security is enabled and forced on user-owned private tables. Policies compare both `owner_subject` and `owner_issuer` to transaction-local identity settings; absent or mismatched identity yields no rows.
 - This setting is **not an authentication mechanism**. Only a trusted backend may assign it after verifying a session. Never expose direct SQL connectivity or let a browser choose a subject.
 
 ## Migrations
