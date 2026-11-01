@@ -33,6 +33,15 @@ function fake(options:{bucketType?:string;name?:string;sha1?:string;
   return {fetcher:fetcher as typeof fetch,urls};
 }
 describe("private B2 download transport",()=>{
+  it("does not expose raw download connection diagnostics",async()=>{
+    const base=fake();
+    const fetcher=(async(url:string,init:RequestInit)=>{
+      if(url.includes("b2_download_file_by_id"))throw Error("synthetic secret connection details");
+      return base.fetcher(url,init);
+    }) as typeof fetch;
+    await expect(createB2PrivateDownloader(config,fetcher)("file123",key,sha1,4))
+      .rejects.toThrow("Private storage unavailable");
+  });
   it("checks private bucket, expected file identity and downloaded digest",async()=>{
     const {fetcher,urls}=fake();
     const result=await createB2PrivateDownloader(config,fetcher)("file123",key,sha1,4);

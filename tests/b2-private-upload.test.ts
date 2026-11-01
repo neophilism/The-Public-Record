@@ -39,6 +39,11 @@ function responses(options:{bucketType?:string;uploadUrl?:string;receiptSha1?:st
   return {fetcher:fetcher as typeof fetch,calls};
 }
 describe("private B2 upload transport",()=>{
+  it("does not expose raw provider connection diagnostics",async()=>{
+    const fetcher=vi.fn(async()=>{throw Error("synthetic secret connection details");}) as typeof fetch;
+    await expect(createB2PrivateUploader(config,fetcher)(objectKey,bytes,"application/pdf"))
+      .rejects.toThrow("Private storage unavailable");
+  });
   it("uploads only to a verified private encrypted bucket and returns no URL",async()=>{
     const {fetcher,calls}=responses();
     const receipt=await createB2PrivateUploader(config,fetcher)(objectKey,bytes,"application/pdf");

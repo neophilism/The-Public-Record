@@ -38,3 +38,5 @@ Upload configuration and payload bytes are pinned before asynchronous authorizat
 
 Three isolated native Node mutation/cancellation scenarios passed against the actual TypeScript adapters. Additional Vitest regressions are committed for current-head hosted quality CI. These fixtures use injected responses, not a live Backblaze bucket. Issuer-scoped ownership, registered-session integration, malware/type screening, aggregate quota/spend persistence and credentialed private-bucket acceptance remain separate unfinished integration work; no upload endpoint is enabled.
 
+Transport connection failures now produce the fixed PrivateStorageError rather than forwarding raw provider/header diagnostics. Unsuccessful JSON responses are cancelled before rejection. No retry of an ambiguous upload is introduced.
+

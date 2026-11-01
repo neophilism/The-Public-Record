@@ -30,7 +30,10 @@ function safeUrl(value:unknown,host:(name:string)=>boolean):URL {
   return url;
 }
 async function boundedJson(response:Response):Promise<Record<string,unknown>> {
-  if(!response.ok || !response.body)throw new PrivateStorageError();
+  if(!response.ok || !response.body){
+    await response.body?.cancel().catch(()=>undefined);
+    throw new PrivateStorageError();
+  }
   const reader=response.body.getReader();
   const decoder=new TextDecoder("utf-8",{fatal:true});
   let total=0,text="";
@@ -51,9 +54,10 @@ function requireToken(value:unknown):string {
   if(typeof value!=="string" || !value || value.length>4096)throw new PrivateStorageError();
   return value;
 }
-function request(fetcher:typeof fetch,url:string,init:RequestInit):Promise<Response> {
-  return fetcher(url,{...init,redirect:"error",cache:"no-store",credentials:"omit",
-    signal:AbortSignal.timeout(10000)});
+async function request(fetcher:typeof fetch,url:string,init:RequestInit):Promise<Response> {
+  try{return await fetcher(url,{...init,redirect:"error",cache:"no-store",credentials:"omit",
+    signal:AbortSignal.timeout(10000)});}
+  catch{throw new PrivateStorageError();}
 }
 /** Validate key scope, bucket privacy and server-side encryption on every operation. */
 export async function authorizePrivateBucket(config:B2PrivateConfig,fetcher:typeof fetch,

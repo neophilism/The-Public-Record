@@ -26,8 +26,10 @@ export function createB2PrivateDownloader(config:B2PrivateConfig,fetcher:typeof 
     const base=expectedDownloadUrl(storage.downloadUrl);
     const url=new URL("/b2api/v4/b2_download_file_by_id",base);
     url.searchParams.set("fileId",fileId);
-    const response=await fetcher(url.href,{method:"GET",redirect:"error",cache:"no-store",
-      credentials:"omit",headers:{Authorization:token},signal:AbortSignal.timeout(10000)});
+    let response:Response;
+    try{response=await fetcher(url.href,{method:"GET",redirect:"error",cache:"no-store",
+      credentials:"omit",headers:{Authorization:token},signal:AbortSignal.timeout(10000)});}
+    catch{throw new PrivateStorageError();}
     try{
     if(!response.ok || !response.body ||
        response.headers.get("x-bz-content-sha1")!==expectedSha1 ||
