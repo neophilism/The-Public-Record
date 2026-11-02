@@ -32,7 +32,7 @@ A merged PR alone does not mean an entire package is accepted. Acceptance requir
 
 ## Partial foundations merged, not counted as accepted
 
-- **TPR-07 — [PR #9](https://github.com/neophilism/The-Public-Record/pull/9):** PKCE/login prerequisites, pinned OIDC token validation, trusted JWKS source and short-lived session tokens. Still needs parent OIDC provider registration, callback exchange, revocation and live session tests.
+- **TPR-07 — [PR #9](https://github.com/neophilism/The-Public-Record/pull/9):** PKCE/login prerequisites, pinned OIDC token validation, trusted JWKS source and short-lived session tokens. [Draft PR #28](https://github.com/neophilism/The-Public-Record/pull/28) adds login/callback/session/logout handlers, browser-bound transactions and durable revocation; it is not merged or accepted. Still needs parent OIDC provider registration, scoped runtime DB credentials, and live integration tests.
 - **TPR-08 — [PR #10](https://github.com/neophilism/The-Public-Record/pull/10):** role/object rule matrix and trusted transaction-scoped subject binding. Still needs authenticated API handlers, durable server-owned grants and end-to-end cross-user tests.
 - **TPR-09 — [PR #11](https://github.com/neophilism/The-Public-Record/pull/11):** cryptographically signed owner-specific quarantine upload permits. Still needs isolated private B2 storage, replay ledger, scanner, key management, quotas and negative live-bucket tests.
 - **TPR-10 — [PR #13](https://github.com/neophilism/The-Public-Record/pull/13):** append-only audit/consent event tables and retention tracking. Still needs restricted action emission, current-effective-consent service, external integrity checkpoint, operational and restore tests.
